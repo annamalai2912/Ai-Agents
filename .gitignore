@@ -28,6 +28,9 @@ Thumbs.db
 .crewai/
 **/.crewai/
 
+# Ignored Sub-projects (already published in standalone repo)
+ai-news-agent/
+
 # Logs
 *.log
 
