@@ -1,0 +1,44 @@
+name: Archive Error & Solution
+
+on:
+  workflow_dispatch:
+    inputs:
+      error_message:
+        description: "Error message or traceback to diagnose and archive"
+        required: true
+        default: "ImportError: cannot import name 'LLM' from 'crewai'"
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install Dependencies
+        run: pip install -r second-brain-archivist/requirements.txt
+
+      - name: Run Second-Brain Archivist
+        working-directory: ./second-brain-archivist
+        run: python crew_archivist.py "${{ github.event.inputs.error_message }}"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+
+      - name: Commit to Vault & TIL Log
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add second-brain-archivist/vault/ second-brain-archivist/TIL_LOG.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs(til): archive new solved error to vault [skip ci]" && git push)

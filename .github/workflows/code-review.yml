@@ -1,0 +1,43 @@
+name: Automated Code & Security Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install Dependencies
+        run: pip install -r code-reviewer-copilot/requirements.txt
+
+      - name: Run Code Reviewer Copilot
+        working-directory: ./code-reviewer-copilot
+        run: python crew_reviewer.py ..
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+
+      - name: Upload Review Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-review-report
+          path: code-reviewer-copilot/CODE_REVIEW_REPORT.md
