@@ -1,0 +1,33 @@
+# Environment and secrets (never commit keys)
+.env
+*.env
+**/.env
+**/*.env
+.env.local
+
+# Virtual environments
+venv/
+**/venv/
+.venv/
+**/.venv/
+env/
+**/env/
+
+# Python cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.crewai/
+**/.crewai/
+
+# Logs
+*.log
+

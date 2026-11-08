@@ -1,0 +1,44 @@
+name: Polish Repo & Profile Showcase
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_path:
+        description: "Target repository path to polish"
+        required: false
+        default: "."
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Repo Polisher
+        run: python crew_polisher.py "${{ github.event.inputs.target_path }}"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+
+      - name: Commit Proposed Documentation
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add README_PROPOSED.md PROFILE_SHOWCASE_SNIPPET.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs(readme): polish repo documentation and profile card [skip ci]" && git push)
+

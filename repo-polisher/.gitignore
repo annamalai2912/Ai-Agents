@@ -1,0 +1,7 @@
+.env
+__pycache__/
+venv/
+*.pyc
+README_PROPOSED.md
+PROFILE_SHOWCASE_SNIPPET.md
+

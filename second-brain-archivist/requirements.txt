@@ -1,0 +1,3 @@
+python-dotenv>=1.0.0
+crewai[google-genai]==1.15.37
+

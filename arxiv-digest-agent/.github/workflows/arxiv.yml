@@ -1,0 +1,45 @@
+name: Daily AI Research Digest
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Daily at 00:00 UTC (05:30 AM IST)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run ArXiv Synthesizer
+        run: python crew_arxiv.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+          ARXIV_QUERY: "cat:cs.AI OR cat:cs.CL OR cat:cs.SE OR cat:cs.CV OR cat:cs.DC"
+          MAX_PAPERS: "15"
+          DRIVE_WEBHOOK_URL: ${{ secrets.DRIVE_WEBHOOK_URL }}
+          DRIVE_SECRET: ${{ secrets.DRIVE_SECRET }}
+
+      - name: Commit & Push Daily Research Digest
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add arxiv_digest.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs(research): update daily arXiv research digest [skip ci]" && git push)
+

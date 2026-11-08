@@ -1,0 +1,6 @@
+.env
+__pycache__/
+venv/
+*.pyc
+CODE_REVIEW_REPORT.md
+
