@@ -127,10 +127,18 @@ def main():
     )
 
     print("\nStarting Storyteller Crew execution...")
-    try:
-        crew.kickoff()
-    except Exception as e:
-        raise SystemExit(f"Crew kickoff failed: {e}")
+    import time
+    for attempt in range(3):
+        try:
+            crew.kickoff()
+            break
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt < 2:
+                print(f"Retrying in {(attempt + 1) * 15}s...")
+                time.sleep((attempt + 1) * 15)
+    else:
+        raise SystemExit("Storyteller crew kickoff failed after 3 attempts.")
 
     # Save outputs
     article_content = str(t2.output) if t2.output else ""

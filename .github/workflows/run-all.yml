@@ -42,6 +42,7 @@ jobs:
       # 1. ArXiv Digest Agent
       - name: Run ArXiv Digest Agent
         if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'arxiv-digest' }}
+        continue-on-error: true
         working-directory: ./arxiv-digest-agent
         run: python crew_arxiv.py
         env:
@@ -55,6 +56,7 @@ jobs:
       # 2. OSS Contributor Scout
       - name: Run OSS Contributor Scout
         if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'oss-scout' }}
+        continue-on-error: true
         working-directory: ./oss-contributor-scout
         run: python crew_scout.py
         env:
@@ -68,6 +70,7 @@ jobs:
       # 3. Job Radar Agent
       - name: Run Job Radar Agent
         if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'job-radar' }}
+        continue-on-error: true
         working-directory: ./job-radar-agent
         run: python crew_radar.py
         env:
@@ -79,6 +82,7 @@ jobs:
       # 4. Tech Storyteller
       - name: Run Tech Storyteller
         if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'tech-storyteller' }}
+        continue-on-error: true
         working-directory: ./tech-storyteller
         run: python crew_storyteller.py ../oss-contributor-scout
         env:
@@ -88,6 +92,7 @@ jobs:
       # 5. Repo Polisher
       - name: Run Repo Polisher
         if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'repo-polisher' }}
+        continue-on-error: true
         working-directory: ./repo-polisher
         run: python crew_polisher.py ../job-radar-agent
         env:
@@ -96,6 +101,7 @@ jobs:
 
       # Commit & Push All Generated Outputs
       - name: Commit & Push Outputs
+        if: always()
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"

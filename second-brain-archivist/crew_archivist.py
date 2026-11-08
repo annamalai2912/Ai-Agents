@@ -135,10 +135,18 @@ def main():
         verbose=True
     )
 
-    try:
-        crew.kickoff()
-    except Exception as e:
-        raise SystemExit(f"Archival failed: {e}")
+    import time
+    for attempt in range(3):
+        try:
+            crew.kickoff()
+            break
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt < 2:
+                print(f"Retrying in {(attempt + 1) * 15}s...")
+                time.sleep((attempt + 1) * 15)
+    else:
+        raise SystemExit("Archival crew kickoff failed after 3 attempts.")
 
     result_text = str(t3.output) if t3.output else ""
     
