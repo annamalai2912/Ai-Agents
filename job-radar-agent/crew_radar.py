@@ -6,7 +6,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from crewai import Agent, Task, Crew, Process, LLM
+from crewai import Agent, Task, Crew, Process
+try:
+    from crewai import LLM
+except (ImportError, AttributeError):
+    from crewai.llm import LLM
 from job_fetcher import fetch_remote_programming_jobs
 from drive_sync import save_to_drive
 

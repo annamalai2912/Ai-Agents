@@ -7,7 +7,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from crewai import Agent, Task, Crew, Process, LLM
+from crewai import Agent, Task, Crew, Process
+try:
+    from crewai import LLM
+except (ImportError, AttributeError):
+    from crewai.llm import LLM
 from github_scout import fetch_candidate_issues, get_repo_summary
 from drive_sync import save_to_drive
 

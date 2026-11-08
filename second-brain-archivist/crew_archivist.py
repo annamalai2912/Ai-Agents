@@ -6,7 +6,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from crewai import Agent, Task, Crew, Process, LLM
+from crewai import Agent, Task, Crew, Process
+try:
+    from crewai import LLM
+except (ImportError, AttributeError):
+    from crewai.llm import LLM
 from vault_manager import save_entry_to_vault
 
 gemini_model = os.getenv("GEMINI_MODEL", "gemini/gemini-3.5-flash-lite")

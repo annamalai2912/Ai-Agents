@@ -1,0 +1,104 @@
+name: 🚀 Master Agent Runner (Run Any or All)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_agent:
+        description: "Choose which agent to execute"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - arxiv-digest
+          - oss-scout
+          - job-radar
+          - tech-storyteller
+          - repo-polisher
+
+permissions:
+  contents: write
+
+jobs:
+  run-agents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install Common Dependencies
+        run: |
+          pip install feedparser requests markdown python-dotenv trafilatura
+          pip install "crewai[google-genai]==1.15.37"
+
+      # 1. ArXiv Digest Agent
+      - name: Run ArXiv Digest Agent
+        if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'arxiv-digest' }}
+        working-directory: ./arxiv-digest-agent
+        run: python crew_arxiv.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+          ARXIV_QUERY: "cat:cs.AI OR cat:cs.CL OR cat:cs.SE OR cat:cs.CV OR cat:cs.DC"
+          MAX_PAPERS: "15"
+          DRIVE_WEBHOOK_URL: ${{ secrets.DRIVE_WEBHOOK_URL }}
+          DRIVE_SECRET: ${{ secrets.DRIVE_SECRET }}
+
+      # 2. OSS Contributor Scout
+      - name: Run OSS Contributor Scout
+        if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'oss-scout' }}
+        working-directory: ./oss-contributor-scout
+        run: python crew_scout.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_LANGUAGES: python,typescript,javascript,go,rust
+          DRIVE_WEBHOOK_URL: ${{ secrets.DRIVE_WEBHOOK_URL }}
+          DRIVE_SECRET: ${{ secrets.DRIVE_SECRET }}
+
+      # 3. Job Radar Agent
+      - name: Run Job Radar Agent
+        if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'job-radar' }}
+        working-directory: ./job-radar-agent
+        run: python crew_radar.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+          DRIVE_WEBHOOK_URL: ${{ secrets.DRIVE_WEBHOOK_URL }}
+          DRIVE_SECRET: ${{ secrets.DRIVE_SECRET }}
+
+      # 4. Tech Storyteller
+      - name: Run Tech Storyteller
+        if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'tech-storyteller' }}
+        working-directory: ./tech-storyteller
+        run: python crew_storyteller.py ../oss-contributor-scout
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+
+      # 5. Repo Polisher
+      - name: Run Repo Polisher
+        if: ${{ inputs.target_agent == 'all' || inputs.target_agent == 'repo-polisher' }}
+        working-directory: ./repo-polisher
+        run: python crew_polisher.py ../job-radar-agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini/gemini-3.5-flash-lite
+
+      # Commit & Push All Generated Outputs
+      - name: Commit & Push Outputs
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main || true
+          git add -A
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(agents): automated cloud suite execution [skip ci]" && git push)
