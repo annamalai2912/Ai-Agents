@@ -99,6 +99,10 @@ jobs:
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main || true
           git add -A
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(agents): automated cloud suite execution [skip ci]" && git push)
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "chore(agents): automated cloud suite execution [skip ci]"
+            git pull --rebase origin main
+            git push origin main
+          fi
+
