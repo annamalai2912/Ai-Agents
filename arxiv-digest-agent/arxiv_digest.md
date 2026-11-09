@@ -1,141 +1,110 @@
-# 🧠 Daily AI Research Digest (2026-11-08)
+# 🧠 Daily AI Research Digest (2026-11-09)
 
 ---
 
-### [SwarmEvolve: Latent Agent Swarms for Evolutionary Discovery and Optimization](https://arxiv.org/abs/2611.08483v1)
-* **Authors:** Qile Jiang, George Em Karniadakis
+### [1. CPU-ARC: Agentic Reasoning Caching for on-CPU Reasoning Reuse](https://arxiv.org/abs/2611.09891v1)
+* **Authors:** Peter Belcak, Greg Heinrich, Saurav Muralidharan, Shizhe Diao
 * **The 30-Second Summary:** 
-  LLM-guided evolutionary search is typically bottlenecked by the heavy compute overhead of generating, decoding, and evaluating long text chains sequentially. *SwarmEvolve* bypasses this by running hundreds of low-cost agents concurrently in latent space, passing raw KV caches directly to share information and perform crossover without text decoding.
-* **The Breakthrough Explained:** 
-  Instead of writing text, agents reason strictly using hidden-state vectors, allowing a novelty filter to measure mathematical distances between states directly. A summarizer agent combines these KV caches to evolve solutions, enabling smaller local models (like Qwen3 8B) to drastically outperform frontier LLMs while slashing runtimes from 60 minutes to just 3–8 minutes.
+  LLM reasoning traces and multi-step agentic execution are computationally expensive and bottlenecked by GPU latency and token generation costs. CPU-ARC introduces a method to convert solved LLM reasoning traces into robust, CPU-executable code and caches, allowing systems to bypass the LLM and execute repetitive reasoning patterns deterministically on cheap CPU nodes.
+* **The Breakthrough Explained:**
+  Instead of forcing an LLM to think from scratch for every structured or repetitive task, CPU-ARC compiles a verified reasoning path into hardcoded execution logic. When a matching problem occurs again, the expensive GPU-hosted LLM is completely bypassed, turning fluid chain-of-thought "thought" into lightning-fast local CPU "muscle memory" with 16x to 291x cost reductions.
 * **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Implement a latent-space communication pattern in your multi-agent loops by sharing tensor states or KV-cache chunks instead of serializing outputs to JSON/strings between steps.
+  Implement a Semantic Reasoning Caching proxy in your agent pipelines. When an agent successfully solves a complex multi-step prompt, hash the semantic intent and cache the resulting tool-call sequence or deterministic code block. Future matching requests bypass the LLM entirely:
   ```python
-  import torch
-  import torch.nn as nn
+  import hashlib
+  import json
+  from typing import Any, Callable, Dict
 
-  class LatentSwarmNode(nn.Module):
-      """Simulates passing raw hidden states/KV caches between agents
+  class ReasoningCache:
+      def __init__(self):
+          self.cache: Dict[str, Dict[str, Any]] = {}
 
-      instead of text-based tool calls or string serialization.
-      """
+      def _hash_intent(self, prompt: str) -> str:
+          return hashlib.sha256(prompt.strip().lower().encode()).hexdigest()
 
-      def __init__(self, hidden_dim: int):
-          super().__init__()
-          self.hidden_dim = hidden_dim
-          self.projection = nn.Linear(hidden_dim, hidden_dim)
+      def get_execution_plan(self, prompt: str) -> Callable | None:
+          key = self._hash_intent(prompt)
+          if key in self.cache:
+              # Return compiled deterministic CPU-bound logic / tool sequence
+              return self.cache[key]["executor"]
+          return None
 
-      def forward(self, incoming_kv_cache: torch.Tensor) -> torch.Tensor:
-          # Mutate latent representations directly for evolutionary search
-          mutated_cache = self.projection(incoming_kv_cache)
-          # Add lightweight novelty noise to maintain population diversity
-          noise = torch.randn_like(mutated_cache) * 0.02
-          return mutated_cache + noise
+      def store_trace(self, prompt: str, execution_plan: Callable, output: Any):
+          key = self._hash_intent(prompt)
+          self.cache[key] = {"executor": execution_plan, "sample_output": output}
 
+  # Production usage: Drop-in before LLM call
+  arc_cache = ReasoningCache()
+  user_prompt = "Validate and parse user tax compliance JSON."
 
-  # Example usage in an optimization loop
-  agent_swarm = LatentSwarmNode(hidden_dim=4096)
-  dummy_kv_state = torch.randn(1, 32, 4096)  # [Batch, SeqLen, HiddenDim]
-  next_generation_state = agent_swarm(dummy_kv_state)
-  print(f"Evolved latent vector shape: {next_generation_state.shape}")
-```
-* **PDF Link:** [https://arxiv.org/pdf/2611.08483v1.pdf](https://arxiv.org/pdf/2611.08483v1.pdf)
+  if executor := arc_cache.get_execution_plan(user_prompt):
+      result = executor() # Executes locally on CPU, 0 tokens spent!
+  else:
+      result = expensive_gpu_llm_chain(user_prompt)
+      # Compile/store trace for future CPU-ARC reuse
+  ```
+* **PDF Link:** [https://arxiv.org/pdf/2611.09891v1.pdf](https://arxiv.org/pdf/2611.09891v1.pdf)
 
 ---
 
-### [Unpacking the Compute Efficiency of Strong-to-Weak OPD against GRPO](https://arxiv.org/abs/2611.08453v1)
-* **Authors:** Zeyu Leo Liu, Yang Li, Bo Pang, Emre Can Acikgoz
+### [2. CodeQuant2: Enhanced Outlier Mitigation and Adaptive Clustering for Low-Precision LRMs](https://arxiv.org/abs/2611.09868v1)
+* **Authors:** Xingyu Liu, Xiangyang Yin, Tianhua Xia, Haiyu Wang
 * **The 30-Second Summary:** 
-  Reinforcement Learning via methods like GRPO is expensive, but On-Policy Distillation (OPD) offers dense supervision signals if configured correctly. The authors demonstrate that using a student model's own intermediate GRPO checkpoint as a teacher allows OPD to recover accuracy with $50\times$ fewer FLOPs.
-* **The Breakthrough Explained:** 
-  Rather than relying on costly, external oracle models that often underperform, feeding a student's own recent checkpoints back into an OPD pipeline accelerates progress consolidation. Additionally, a multi-teacher OPD pipeline merges multiple domain-expert checkpoints into a single unified model, cutting total specialist training compute budgets by up to 42%.
+  Large Reasoning Models (LRMs) generate long, computationally heavy intermediate reasoning tokens that are difficult to compress due to extreme activation outliers. CodeQuant2 introduces reasoning-aware calibration, rotation/scaling outlier mitigation, and adaptive codebook clustering to successfully quantize LRMs down to low-precision formats.
+* **The Breakthrough Explained:**
+  Quantizing reasoning models traditionally destroys their logic loops because a tiny fraction of outlier activation values corrupt the numerical precision. CodeQuant2 resolves this via specialized rotation and scaling transformations combined with custom lookup-table (LUT) CUDA kernels, securing up to a $2.85\times$ inference speedup without degrading performance on hard reasoning benchmarks.
 * **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Set up an iterative self-distillation pipeline where your periodic RL checkpoints act as the on-policy teacher for your ongoing supervised fine-tuning (SFT) steps.
+  When deploying local vLLM or HuggingFace reasoning models, configure outlier-aware quantization backends (such as specialized AWQ/GPTQ derivatives with activation scaling) to drastically lower VRAM overhead:
   ```python
-  import torch
-  import torch.nn.functional as F
+  # MLOps Deployment Config snippet for low-precision LRM serving
+  from vllm import LLM, SamplingParams
 
+  # Initialize self-hosted LRM with reasoning-safe quantization
+  model = LLM(
+      model="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+      quantization="fp8", # Or CodeQuant2-derived custom LUT kernel backend
+      tensor_parallel_size=1,
+      gpu_memory_utilization=0.90,
+      enforce_eager=True # Recommended for stable intermediate reasoning traces
+  )
 
-  def compute_on_policy_distillation_loss(
-      student_logits: torch.Tensor,
-      teacher_logits: torch.Tensor,
-      temperature: float = 2.0,
-  ) -> torch.Tensor:
-      """Computes KL-divergence loss using the student's own earlier
-
-      GRPO checkpoint as the teacher to drastically reduce training FLOPs.
-      """
-      soft_student = F.log_softmax(student_logits / temperature, dim=-1)
-      soft_teacher = F.softmax(teacher_logits / temperature, dim=-1)
-
-      # KL divergence loss scaled by temperature squared
-      loss = (
-          F.kl_div(soft_student, soft_teacher, reduction="batchmean")
-          * (temperature**2)
-      )
-      return loss
-
-
-  # Example tensors representing token logits
-  s_logits = torch.randn(4, 128, 32000, requires_grad=True)
-  t_logits = torch.randn(4, 128, 32000)  # From intermediate GRPO checkpoint
-  odp_loss = compute_on_policy_distillation_loss(s_logits, t_logits)
-  print(f"Computed OPD Loss: {odp_loss.item():.4f}")
-```
-* **PDF Link:** [https://arxiv.org/pdf/2611.08453v1.pdf](https://arxiv.org/pdf/2611.08453v1.pdf)
+  sampling_params = SamplingParams(temperature=0.6, max_tokens=2048)
+  output = model.generate("Solve step-by-step: Calculate load balancing latency.", sampling_params)
+  ```
+* **PDF Link:** [https://arxiv.org/pdf/2611.09868v1.pdf](https://arxiv.org/pdf/2611.09868v1.pdf)
 
 ---
 
-### [ReproBridge: Building Reproducibility into ML Research Artifacts](https://arxiv.org/abs/2611.08452v1)
-* **Authors:** Yubo Wang, Rui Meng, Jaehyun Nam, Tomas Pfister
+### [3. On Agentic Manipulation Policies](https://arxiv.org/abs/2611.09892v1)
+* **Authors:** Chen Chen, Omid Bagherieh, Naveen Nikamanth Appiah Balaji, Jesse T. Gonzalez
 * **The 30-Second Summary:** 
-  Coding agents often fail because real-world repositories are messy, featuring broken environments and undocumented dependencies. *ReproBridge* introduces an automated preprocessing pipeline that standardizes codebases, builds reliable experiment launchers, and writes clear reproduction guides before agents execute tasks.
-* **The Breakthrough Explained:** 
-  By sanitizing chaotic developer repositories into pristine, turnkey environments upfront, ReproBridge raises mean agent reproduction success from 76.4% to 92.6%. Furthermore, it cuts downstream API spending by nearly 20% by eliminating token-wasting trial-and-error debugging loops caused by broken environments.
+  Robotic manipulation has historically relied on brittle Vision-Language-Action (VLA) models trained on massive domain demonstrations. This paper introduces AMP1, a reference harness wrapping a generalist AI model with persistent memory to command robotic arms zero-shot across unforeseen tasks and bimanual setups.
+* **The Breakthrough Explained:**
+  Instead of treating physical robotics as an imitation learning problem dependent on extensive task-specific datasets, AMP1 leverages general-purpose reasoning and persistent memory stores. This allows agents to handle novel objects, improvise tools on the fly, and execute complex bimanual tasks safely and robustly.
 * **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Build a pre-execution linting and environment-validation gate into your agentic harness to ensure repository hygiene before handing tasks over to the coding LLM.
+  Abstract robotic hardware primitives behind an agentic tool-use interface rather than training end-to-end motor models. Expose low-level IK (Inverse Kinematics) and vision routines as structured functions to a general-purpose agent loop:
   ```python
-  import os
-  from typing import Dict, List
+  from langchain.agents import initialize_agent, Tool
+  from langchain_openai import ChatOpenAI
 
+  # Define hardware control primitives for the generalist agent harness (AMP1 style)
+  def move_end_effector(x: float, y: float, z: float):
+      return f"Moved arm to coordinates ({x}, {y}, {z})"
 
-  class ReproBridgeSanitizer:
-      """Sanitizes messy repositories into turnkey, agent-ready environments."""
+  def use_tool_object(tool_name: str, target: str):
+      return f"Improvised tool '{tool_name}' applied successfully to '{target}'."
 
-      def __init__(self, repo_path: str):
-          self.repo_path = repo_path
-          self.required_artifacts = [
-              "Dockerfile",
-              "requirements.txt",
-              "run_experiment.sh",
-          ]
+  tools = [
+      Tool(name="MoveArm", func=move_end_effector, description="Position gripper in 3D space."),
+      Tool(name="ManipulateObject", func=use_tool_object, description="Use environment objects as tools.")
+  ]
 
-      def audit_repository(self) -> Dict[str, bool]:
-          """Checks if essential reproducibility artifacts exist."""
-          audit_results = {}
-          for artifact in self.required_artifacts:
-              path = os.path.join(self.repo_path, artifact)
-              audit_results[artifact] = os.path.exists(path)
-          return audit_results
-
-      def generate_missing_scaffolding(self, audit_results: Dict[str, bool]):
-          """Stub to automatically bootstrap missing dependency configurations."""
-          for artifact, exists in audit_results.items():
-              if not exists:
-                  print(
-                      f"⚠️ ReproBridge Alert: Missing '{artifact}'. Auto-generating standard template..."
-                  )
-                  # Insert logic to write default configuration files
-
-
-  # Example harness usage
-  sanitizer = ReproBridgeSanitizer(repo_path="./messy-user-repo")
-  status = sanitizer.audit_repository()
-  sanitizer.generate_missing_scaffolding(status)
-```
-* **PDF Link:** [https://arxiv.org/pdf/2611.08452v1.pdf](https://arxiv.org/pdf/2611.08452v1.pdf)
+  agent = initialize_agent(tools, ChatOpenAI(model="gpt-4o", temperature=0), agent="structured-chat-zero-shot-react-description")
+  response = agent.run("Pick up the screwdriver from the tray and tighten the loose bolt on the chassis.")
+  ```
+* **PDF Link:** [https://arxiv.org/pdf/2611.09892v1.pdf](https://arxiv.org/pdf/2611.09892v1.pdf)
 
 ---
 
 ### 💡 Builder Trend of the Day
-Today's research highlights a clear transition away from brute-force token generation and expensive manual scaffolding toward **architectural efficiency and environment pre-conditioning**. Whether it's replacing text loops with latent-space KV-cache swarms (*SwarmEvolve*), optimizing student alignment via self-distillation checkpoints instead of raw RL (*Strong-to-Weak OPD*), or sanitizing chaotic codebases before agents touch them (*ReproBridge*), the overarching shift is clear: elite AI engineering is moving from spending more compute to **optimizing the pathways and contexts** where compute is deployed.
+The trajectory across all three papers points directly to **operational efficiency through architectural pragmatism**. We are moving past the era of brute-force scaling where every task requires an expensive, floating-point-heavy GPU inference pass. Whether it is caching multi-step reasoning traces into deterministic CPU code (`CPU-ARC`), taming activation outliers to compress reasoning models into fast low-precision formats (`CodeQuant2`), or replacing brittle end-to-end robotics datasets with clean generalist agent loops (`AMP1`), the industry focus has shifted entirely toward making intelligent systems **cheaper, faster, and more robust to run in real-world production.**
