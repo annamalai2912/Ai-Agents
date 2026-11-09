@@ -1,35 +1,47 @@
-# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-08)
+# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-09)
 
-- ### [btclib-org/bip32-descriptors #133: miniscript.parse quotes an unknown context it was given in its refusal](https://github.com/btclib-org/bip32-descriptors/issues/133) (9 ⭐)
-- **Profile Value:** Showcases advanced security mindfulness in cryptographic and Bitcoin-focused Python libraries by preventing side-channel leaks and sensitive data exposure in error messages.
-- **The Challenge:** When parsing invalid or malformed descriptors with unknown contexts, `_assert_valid_context` currently echoes the raw user-supplied context string back into the exception, violating the security invariant: *"A refusal carries no secret"*.
-- **Technical Plan:** 
-  1. Inspect `src/bip32_descriptors/descriptors/miniscript.py` and locate `_assert_valid_context`.
-  2. Rewrite the exception formatting to omit the raw `context` input and instead display only the expected valid options.
-  3. Add a unit test (`test_miniscript_parse_unknown_context_no_leak`) in `tests/descriptors/test_miniscript.py` asserting that arbitrary/secret strings passed as contexts do not appear in the raised exception message.
+---
+
+### ### [Correct formatting of the sample TOC on the Edition edit page](https://github.com/internetarchive/openlibrary/issues/14322) (Repo Stars: ~6,817)
+- **Profile Value:** Contributing code to the Internet Archive's Open Library adds a globally recognized, high-scale digital library project to your portfolio, proving your ability to collaborate on massive, production-grade repositories.
+- **The Challenge:** The Table of Contents (TOC) sample formatting on the Edition edit page does not render correctly according to standard specifications or layout requirements.
+- **Technical Plan:**
+  1. Search the codebase for bindings related to the TOC input field (`id="id_table_of_contents"` or similar) under `openlibrary/templates/edition/`.
+  2. Inspect whether the rendering breakdown is caused by missing HTML preformatting tags, template filters, or CSS rules.
+  3. Apply the appropriate fix—such as adding `white-space: pre-wrap;` to the preview container or adjusting template output handling.
+  4. Spin up the local dev instance, input a multi-line TOC sample, and verify that the layout matches the issue's reference screenshots.
 - **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I'd love to tackle this issue. 
+  Hi maintainers! I would love to pick up this issue and submit a fix for the TOC sample formatting on the Edition edit page. 
 
-  I plan to update `_assert_valid_context` in `src/bip32_descriptors/descriptors/miniscript.py` to ensure that unknown user-provided contexts are no longer echoed back in exception messages (upholding the *"A refusal carries no secret"* invariant). I'll also add a dedicated regression test with `pytest` to guarantee secrets/arbitrary context strings never leak through parse errors.
+  **Planned Approach:**
+  1. Locate the relevant template files under `openlibrary/templates/edition/` and styling rules targeting the TOC preview container.
+  2. Investigate the whitespace and newline rendering behavior causing the layout breakdown.
+  3. Apply the correct CSS or templating fix (e.g., ensuring `white-space: pre-wrap` or proper escaping is used).
+  4. Test locally to ensure multi-line TOC previews render accurately across views.
 
-  Please let me know if this approach sounds good and if you can assign this issue to me!
+  Could you please assign this issue to me? Thank you!
   ```
 
 ---
 
-- ### [luciano2-web/Luciano-Sarmiento #28: 🧪 tests: ampliar pruebas del sistema de personalidad (src/core/personality.py)](https://github.com/luciano2-web/Luciano-Sarmiento/issues/28) (1 ⭐)
-- **Profile Value:** Demonstrates strong test-driven development (TDD) skills and robust unit-testing patterns (`pytest`) for AI agentic guardrails and conversational constraints.
-- **The Challenge:** Broaden test coverage in `tests/test_personality.py` for `src/core/personality.py` to rigorously validate tone stability, phrase limits, and forbidden keyword filtering (e.g., "AI", "ChatGPT") without relying on external LLM APIs.
-- **Technical Plan:** 
-  1. Review the core methods inside `src/core/personality.py`.
-  2. Expand `tests/test_personality.py` to include tests covering forbidden keyword detection/sanitization, system prompt persona consistency (Félix the cat coder), and edge-case inputs (empty strings, special characters, code snippets).
-  3. Run `pytest tests/test_personality.py -v` to ensure green status.
+### ### [install.sh: on Linux, point to the Linux issue](https://github.com/Hadeva-Dev/dawnmere/issues/23) (Repo Stars: 1)
+- **Profile Value:** Demonstrating contributions to modern repositories utilizing Model Context Protocol and automated testing frameworks proves your versatility with contemporary CLI tools and script engineering.
+- **The Challenge:** The installation shell script (`install.sh`) currently lacks a user-facing informational prompt directing Linux users to the specific Linux tracking issue.
+- **Technical Plan:**
+  1. Open `install.sh` and locate the platform detection logic utilizing `uname -s`.
+  2. Update the Linux branch (`Linux*`) to echo a clear, helpful message pointing users to the designated Linux issue URL.
+  3. Inspect `cli/tests/test_install_sh.py` to understand how the shell script execution is currently mocked and tested.
+  4. Add a test assertion to `cli/tests/test_install_sh.py` verifying that Linux environments correctly trigger and output the expected issue guidance message.
+  5. Run `poetry run pytest cli/tests/test_install_sh.py` to ensure all tests pass successfully.
 - **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi team! I would like to help expand the test suite for the personality system.
+  Hi there! I'd like to tackle this issue. 
 
-  My plan is to add comprehensive unit tests to `tests/test_personality.py` covering forbidden keyword filtering, persona system prompt validation, and edge-case string handling as outlined in the issue description. This will ensure robust guardrail enforcement without external API dependencies.
+  **Proposed Solution:**
+  1. Modify `install.sh` within the Linux platform detection block to output an informative message directing users to the Linux tracking issue URL.
+  2. Update the corresponding unit tests in `cli/tests/test_install_sh.py` to assert that the correct Linux notice string is outputted to `stdout` under a simulated Linux environment.
+  3. Validate the changes locally using `pytest`.
 
-  Could you please assign this issue to me? Ready to get started!
+  Please assign this issue to me if it's still available. Thanks!
   ```
