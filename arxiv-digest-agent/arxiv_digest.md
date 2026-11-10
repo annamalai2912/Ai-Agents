@@ -1,110 +1,82 @@
-# 🧠 Daily AI Research Digest (2026-11-09)
+# 🧠 Daily AI Research Digest (2026-11-10)
 
 ---
 
-### [1. CPU-ARC: Agentic Reasoning Caching for on-CPU Reasoning Reuse](https://arxiv.org/abs/2611.09891v1)
-* **Authors:** Peter Belcak, Greg Heinrich, Saurav Muralidharan, Shizhe Diao
-* **The 30-Second Summary:** 
-  LLM reasoning traces and multi-step agentic execution are computationally expensive and bottlenecked by GPU latency and token generation costs. CPU-ARC introduces a method to convert solved LLM reasoning traces into robust, CPU-executable code and caches, allowing systems to bypass the LLM and execute repetitive reasoning patterns deterministically on cheap CPU nodes.
+### [1. Phrase-Level Speculative Decoding on a Frozen Target](https://arxiv.org/abs/2611.12464v1)
+* **Authors:** Research Team (See arXiv for full author list)
+* **The 30-Second Summary:** Standard speculative decoding struggles with multi-word phrases and idioms because it drafts text strictly token-by-token using the model's native vocabulary. This paper introduces a tiny auxiliary MLP head with its own phrase vocabulary that predicts multi-word units in a single forward step, mapping them back via greedy longest-match expansion.
 * **The Breakthrough Explained:**
-  Instead of forcing an LLM to think from scratch for every structured or repetitive task, CPU-ARC compiles a verified reasoning path into hardcoded execution logic. When a matching problem occurs again, the expensive GPU-hosted LLM is completely bypassed, turning fluid chain-of-thought "thought" into lightning-fast local CPU "muscle memory" with 16x to 291x cost reductions.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Implement a Semantic Reasoning Caching proxy in your agent pipelines. When an agent successfully solves a complex multi-step prompt, hash the semantic intent and cache the resulting tool-call sequence or deterministic code block. Future matching requests bypass the LLM entirely:
+  1. **The Core Problem:** Human language and code are filled with multi-word phrases spanning multiple Byte-Pair Encoding (BPE) tokens. Predicting these strictly one token at a time hits a hard bottleneck, limiting how fast the auxiliary model can push ahead of the heavy target model.
+  2. **The Key Breakthrough:** The paper introduces a tiny auxiliary MLP head (adding <0.5% to the parameter footprint) equipped with a separate draft vocabulary trained to predict entire *multi-word phrases*. These are mapped back to the target model's standard vocabulary using greedy longest-match expansion.
+  3. **Real-world Results:** This technique delivers massive inference speedups—up to **2.4x faster generation** on reasoning benchmarks like MATH-500 and GSM8K—while working on top of a completely frozen target model with zero retraining and zero output distribution drift.
+* **🛠️ How You Can Apply This (Developer Takeaway):** Implement a phrase-level caching and draft-expansion middleware layer in your custom vLLM serving pipeline to pre-compute frequent multi-token idiom sequences before hitting your target transformer:
   ```python
-  import hashlib
-  import json
-  from typing import Any, Callable, Dict
+  class PhraseDraftExpander:
+      def __init__(self, phrase_vocab: dict[int, list[str]]):
+          # Maps auxiliary phrase IDs to sequences of target model token IDs
+          self.phrase_vocab = phrase_vocab
 
-  class ReasoningCache:
-      def __init__(self):
-          self.cache: Dict[str, Dict[str, Any]] = {}
-
-      def _hash_intent(self, prompt: str) -> str:
-          return hashlib.sha256(prompt.strip().lower().encode()).hexdigest()
-
-      def get_execution_plan(self, prompt: str) -> Callable | None:
-          key = self._hash_intent(prompt)
-          if key in self.cache:
-              # Return compiled deterministic CPU-bound logic / tool sequence
-              return self.cache[key]["executor"]
-          return None
-
-      def store_trace(self, prompt: str, execution_plan: Callable, output: Any):
-          key = self._hash_intent(prompt)
-          self.cache[key] = {"executor": execution_plan, "sample_output": output}
-
-  # Production usage: Drop-in before LLM call
-  arc_cache = ReasoningCache()
-  user_prompt = "Validate and parse user tax compliance JSON."
-
-  if executor := arc_cache.get_execution_plan(user_prompt):
-      result = executor() # Executes locally on CPU, 0 tokens spent!
-  else:
-      result = expensive_gpu_llm_chain(user_prompt)
-      # Compile/store trace for future CPU-ARC reuse
+      def expand_draft(self, draft_phrase_ids: list[int]) -> list[int]:
+          target_tokens = []
+          for pid in draft_phrase_ids:
+              # Longest-match expansion mapping
+              tokens = self.phrase_vocab.get(pid, [])
+              target_tokens.extend(tokens)
+          return target_tokens
   ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.09891v1.pdf](https://arxiv.org/pdf/2611.09891v1.pdf)
+* **PDF Link:** [https://arxiv.org/pdf/2611.12464v1](https://arxiv.org/pdf/2611.12464v1)
 
 ---
 
-### [2. CodeQuant2: Enhanced Outlier Mitigation and Adaptive Clustering for Low-Precision LRMs](https://arxiv.org/abs/2611.09868v1)
-* **Authors:** Xingyu Liu, Xiangyang Yin, Tianhua Xia, Haiyu Wang
-* **The 30-Second Summary:** 
-  Large Reasoning Models (LRMs) generate long, computationally heavy intermediate reasoning tokens that are difficult to compress due to extreme activation outliers. CodeQuant2 introduces reasoning-aware calibration, rotation/scaling outlier mitigation, and adaptive codebook clustering to successfully quantize LRMs down to low-precision formats.
+### [2. SciMARS: Multi-Agent Recursive Self-Improvement for Closed-Loop Scientific Discovery](https://arxiv.org/abs/2611.12552v1)
+* **Authors:** Research Team (See arXiv for full author list)
+* **The 30-Second Summary:** Most multi-agent systems use rigid, hard-coded roles that break down over long-horizon tasks due to repetitive errors and static memory. SciMARS solves this by combining a shared evidence graph with component editors that dynamically adapt agent roles and coordination pathways based on runtime execution feedback.
 * **The Breakthrough Explained:**
-  Quantizing reasoning models traditionally destroys their logic loops because a tiny fraction of outlier activation values corrupt the numerical precision. CodeQuant2 resolves this via specialized rotation and scaling transformations combined with custom lookup-table (LUT) CUDA kernels, securing up to a $2.85\times$ inference speedup without degrading performance on hard reasoning benchmarks.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  When deploying local vLLM or HuggingFace reasoning models, configure outlier-aware quantization backends (such as specialized AWQ/GPTQ derivatives with activation scaling) to drastically lower VRAM overhead:
+  1. **The Core Problem:** Static multi-agent prompt pipelines get stuck in infinite loops, repeat past mistakes, and fail to maintain a coherent, evolving shared memory when confronted with complex, long-horizon tasks.
+  2. **The Key Breakthrough:** SciMARS introduces an architectural pattern built around a **shared evidence graph** and **distinct component editors**. The system uses runtime feedback from intermediate observations to dynamically rewrite agent roles, shift coordination pathways, and update memory retrieval policies on the fly.
+  3. **Real-world Results:** This self-improving, state-aware architecture drastically boosts success rates on grueling evaluation suites like *Autonomous Science Bench* and *ScienceAgentBench*, moving engineers away from brittle scripts toward resilient self-correcting systems.
+* **🛠️ How You Can Apply This (Developer Takeaway):** Design your agent harnesses with a mutable state-graph layer that intercepts execution traces and rewrites agent system prompts dynamically via an editor component:
   ```python
-  # MLOps Deployment Config snippet for low-precision LRM serving
-  from vllm import LLM, SamplingParams
+  class ComponentEditor:
+      def __init__(self, base_agent_state: dict):
+          self.state = base_agent_state
 
-  # Initialize self-hosted LRM with reasoning-safe quantization
-  model = LLM(
-      model="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
-      quantization="fp8", # Or CodeQuant2-derived custom LUT kernel backend
-      tensor_parallel_size=1,
-      gpu_memory_utilization=0.90,
-      enforce_eager=True # Recommended for stable intermediate reasoning traces
-  )
-
-  sampling_params = SamplingParams(temperature=0.6, max_tokens=2048)
-  output = model.generate("Solve step-by-step: Calculate load balancing latency.", sampling_params)
+      def adapt_on_failure(self, error_trace: str, evidence_graph: dict):
+          if "syntax_error" in error_trace:
+              self.state["active_role"] = "Senior Debugger"
+              self.state["retrieval_policy"] = "focus_on_syntax_history"
+          # Dynamically modify coordination pathways based on shared evidence
+          self.state["evidence_snapshot"] = evidence_graph.get("latest_valid_state")
+          return self.state
   ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.09868v1.pdf](https://arxiv.org/pdf/2611.09868v1.pdf)
+* **PDF Link:** [https://arxiv.org/pdf/2611.12552v1](https://arxiv.org/pdf/2611.12552v1)
 
 ---
 
-### [3. On Agentic Manipulation Policies](https://arxiv.org/abs/2611.09892v1)
-* **Authors:** Chen Chen, Omid Bagherieh, Naveen Nikamanth Appiah Balaji, Jesse T. Gonzalez
-* **The 30-Second Summary:** 
-  Robotic manipulation has historically relied on brittle Vision-Language-Action (VLA) models trained on massive domain demonstrations. This paper introduces AMP1, a reference harness wrapping a generalist AI model with persistent memory to command robotic arms zero-shot across unforeseen tasks and bimanual setups.
+### [3. Can the Confidence and Decisions of System 1 Models Be Trusted? An Explainability and Perturbation Audit of Jev-Style Decision Models](https://arxiv.org/abs/2611.12521v1)
+* **Authors:** Research Team (See arXiv for full author list)
+* **The 30-Second Summary:** System 1 decision models bypass slow text generation to output typed probabilities over predefined schemas in a single forward pass, offering extreme speed for routing and triage. This paper audits these models, proving they achieve near-perfect prompt injection defense while highlighting critical blind spots around cross-question interference.
 * **The Breakthrough Explained:**
-  Instead of treating physical robotics as an imitation learning problem dependent on extensive task-specific datasets, AMP1 leverages general-purpose reasoning and persistent memory stores. This allows agents to handle novel objects, improvise tools on the fly, and execute complex bimanual tasks safely and robustly.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Abstract robotic hardware primitives behind an agentic tool-use interface rather than training end-to-end motor models. Expose low-level IK (Inverse Kinematics) and vision routines as structured functions to a general-purpose agent loop:
+  1. **The Core Problem:** While sub-10B single-pass probability models are attractive for low-latency tasks like semantic routing and intent classification, engineers have lacked rigorous data on their calibration, robustness, and attribution faithfulness.
+  2. **The Key Breakthrough:** The authors rigorously audited sub-10B decision models across syntactic shifts, prompt injection defense, and attribution faithfulness, mapping precisely when and why single-pass probability models can be trusted.
+  3. **Real-world Results:** The audit proves that these models achieve **near-perfect prompt injection defense (up to 0.998 AUROC)** with lightning-fast inference (**under 60ms**), validating a cheaper, high-reliability architecture for latency-critical orchestration layers and security guardrails.
+* **🛠️ How You Can Apply This (Developer Takeaway):** Replace bulky generative LLMs with an optimized, typed-output System 1 classifier for your gateway security and semantic routing layer:
   ```python
-  from langchain.agents import initialize_agent, Tool
-  from langchain_openai import ChatOpenAI
+  from pydantic import BaseModel, Field
 
-  # Define hardware control primitives for the generalist agent harness (AMP1 style)
-  def move_end_effector(x: float, y: float, z: float):
-      return f"Moved arm to coordinates ({x}, {y}, {z})"
+  class System1RoutingDecision(BaseModel):
+      intent: str = Field(description="Classified user intent")
+      confidence: float = Field(ge=0.0, le=1.0, description="Calibrated decision confidence")
+      is_safe: bool = Field(description="Adversarial prompt injection defense flag")
 
-  def use_tool_object(tool_name: str, target: str):
-      return f"Improvised tool '{tool_name}' applied successfully to '{target}'."
-
-  tools = [
-      Tool(name="MoveArm", func=move_end_effector, description="Position gripper in 3D space."),
-      Tool(name="ManipulateObject", func=use_tool_object, description="Use environment objects as tools.")
-  ]
-
-  agent = initialize_agent(tools, ChatOpenAI(model="gpt-4o", temperature=0), agent="structured-chat-zero-shot-react-description")
-  response = agent.run("Pick up the screwdriver from the tray and tighten the loose bolt on the chassis.")
+  def fast_intent_router(input_tensor, system_1_model) -> System1RoutingDecision:
+      # Executes in <60ms via single-forward-pass typed probability distribution
+      logits = system_1_model(input_tensor)
+      return System1RoutingDecision.from_logits(logits)
   ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.09892v1.pdf](https://arxiv.org/pdf/2611.09892v1.pdf)
+* **PDF Link:** [https://arxiv.org/pdf/2611.12521v1](https://arxiv.org/pdf/2611.12521v1)
 
 ---
 
 ### 💡 Builder Trend of the Day
-The trajectory across all three papers points directly to **operational efficiency through architectural pragmatism**. We are moving past the era of brute-force scaling where every task requires an expensive, floating-point-heavy GPU inference pass. Whether it is caching multi-step reasoning traces into deterministic CPU code (`CPU-ARC`), taming activation outliers to compress reasoning models into fast low-precision formats (`CodeQuant2`), or replacing brittle end-to-end robotics datasets with clean generalist agent loops (`AMP1`), the industry focus has shifted entirely toward making intelligent systems **cheaper, faster, and more robust to run in real-world production.**
+Today's research reveals a powerful overarching shift: **AI engineering is moving away from brute-force generative scaling and toward highly optimized, state-aware modular architectures.** Whether it is accelerating frozen target models via phrase-level speculative decoding, building self-improving evidence graphs for multi-agent loops, or deploying sub-10B System 1 models for lightning-fast, secure routing—the winning paradigm for 2026 is **precision, structural feedback loops, and infrastructure efficiency.**
