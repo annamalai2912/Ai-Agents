@@ -1,82 +1,127 @@
-# 🧠 Daily AI Research Digest (2026-11-10)
+# 🧠 Daily AI Research Digest (2026-11-11)
 
 ---
 
-### [1. Phrase-Level Speculative Decoding on a Frozen Target](https://arxiv.org/abs/2611.12464v1)
-* **Authors:** Research Team (See arXiv for full author list)
-* **The 30-Second Summary:** Standard speculative decoding struggles with multi-word phrases and idioms because it drafts text strictly token-by-token using the model's native vocabulary. This paper introduces a tiny auxiliary MLP head with its own phrase vocabulary that predicts multi-word units in a single forward step, mapping them back via greedy longest-match expansion.
-* **The Breakthrough Explained:**
-  1. **The Core Problem:** Human language and code are filled with multi-word phrases spanning multiple Byte-Pair Encoding (BPE) tokens. Predicting these strictly one token at a time hits a hard bottleneck, limiting how fast the auxiliary model can push ahead of the heavy target model.
-  2. **The Key Breakthrough:** The paper introduces a tiny auxiliary MLP head (adding <0.5% to the parameter footprint) equipped with a separate draft vocabulary trained to predict entire *multi-word phrases*. These are mapped back to the target model's standard vocabulary using greedy longest-match expansion.
-  3. **Real-world Results:** This technique delivers massive inference speedups—up to **2.4x faster generation** on reasoning benchmarks like MATH-500 and GSM8K—while working on top of a completely frozen target model with zero retraining and zero output distribution drift.
-* **🛠️ How You Can Apply This (Developer Takeaway):** Implement a phrase-level caching and draft-expansion middleware layer in your custom vLLM serving pipeline to pre-compute frequent multi-token idiom sequences before hitting your target transformer:
-  ```python
-  class PhraseDraftExpander:
-      def __init__(self, phrase_vocab: dict[int, list[str]]):
-          # Maps auxiliary phrase IDs to sequences of target model token IDs
-          self.phrase_vocab = phrase_vocab
+### [ReTrace: Distilling Tool-Using Agents into Planner-Free Workflows](https://arxiv.org/abs/2611.14492v1)
+* **Authors:** Kaiyuan Hou, Yang Ping Kuo, Indranil Bhattacharya, Rohith Nama
+* **The 30-Second Summary:** Building dynamic agent workflows with LLMs is easy for prototyping, but production deployment fails due to high latency, unpredictable non-determinism, and exorbitant token costs. *ReTrace* solves this by mining successful agent execution logs, extracting their underlying routing logic, and compiling them into deterministic, planner-free Python code.
+* **The Breakthrough Explained:** Instead of relying on an expensive LLM to make decisions at every single step of a multi-step task, *ReTrace* replaces the runtime agent loop with compiled conditional routing rules. By converting dynamic prompt-and-response orchestration into a standard programmatic script, execution bypasses redundant LLM inference calls entirely while preserving the exact pathing needed to complete complex tool-use sequences.
+* **🛠️ How You Can Apply This (Developer Takeaway):** Transition fragile agent loops to deterministic state machines once you have gathered enough successful trace telemetry. Here is a conceptual Python pattern showing how to replace a dynamic LLM router with a static compiled decision function:
 
-      def expand_draft(self, draft_phrase_ids: list[int]) -> list[int]:
-          target_tokens = []
-          for pid in draft_phrase_ids:
-              # Longest-match expansion mapping
-              tokens = self.phrase_vocab.get(pid, [])
-              target_tokens.extend(tokens)
-          return target_tokens
-  ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.12464v1](https://arxiv.org/pdf/2611.12464v1)
+```python
+from typing import Dict, Any, Callable
+import json
 
----
+# BEFORE: Dynamic LLM Agent Loop (High latency, expensive tokens)
+def run_dynamic_agent_step(state: Dict[str, Any]) -> str:
+    prompt = f"Given state {state}, should we call 'sql_tool' or 'api_tool' or 'finish'?"
+    # response = expensive_llm.generate(prompt)
+    return "sql_tool" # simulated LLM decision
 
-### [2. SciMARS: Multi-Agent Recursive Self-Improvement for Closed-Loop Scientific Discovery](https://arxiv.org/abs/2611.12552v1)
-* **Authors:** Research Team (See arXiv for full author list)
-* **The 30-Second Summary:** Most multi-agent systems use rigid, hard-coded roles that break down over long-horizon tasks due to repetitive errors and static memory. SciMARS solves this by combining a shared evidence graph with component editors that dynamically adapt agent roles and coordination pathways based on runtime execution feedback.
-* **The Breakthrough Explained:**
-  1. **The Core Problem:** Static multi-agent prompt pipelines get stuck in infinite loops, repeat past mistakes, and fail to maintain a coherent, evolving shared memory when confronted with complex, long-horizon tasks.
-  2. **The Key Breakthrough:** SciMARS introduces an architectural pattern built around a **shared evidence graph** and **distinct component editors**. The system uses runtime feedback from intermediate observations to dynamically rewrite agent roles, shift coordination pathways, and update memory retrieval policies on the fly.
-  3. **Real-world Results:** This self-improving, state-aware architecture drastically boosts success rates on grueling evaluation suites like *Autonomous Science Bench* and *ScienceAgentBench*, moving engineers away from brittle scripts toward resilient self-correcting systems.
-* **🛠️ How You Can Apply This (Developer Takeaway):** Design your agent harnesses with a mutable state-graph layer that intercepts execution traces and rewrites agent system prompts dynamically via an editor component:
-  ```python
-  class ComponentEditor:
-      def __init__(self, base_agent_state: dict):
-          self.state = base_agent_state
+# AFTER (ReTrace Pattern): Compiled Deterministic State Machine
+class CompiledWorkflow:
+    def __init__(self):
+        # Compiled routing rules mined from successful agent logs
+        self.transition_rules: Dict[str, Callable[[Dict[str, Any]], str]] = {
+            "start": lambda s: "sql_tool" if "database" in s.get("query", "").lower() else "api_tool",
+            "sql_tool": lambda s: "finish" if s.get("sql_results") else "sql_tool"
+        }
 
-      def adapt_on_failure(self, error_trace: str, evidence_graph: dict):
-          if "syntax_error" in error_trace:
-              self.state["active_role"] = "Senior Debugger"
-              self.state["retrieval_policy"] = "focus_on_syntax_history"
-          # Dynamically modify coordination pathways based on shared evidence
-          self.state["evidence_snapshot"] = evidence_graph.get("latest_valid_state")
-          return self.state
-  ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.12552v1](https://arxiv.org/pdf/2611.12552v1)
+    def execute(self, initial_state: Dict[str, Any]) -> Dict[str, Any]:
+        state = initial_state
+        step = "start"
+        while step != "finish":
+            next_step_func = self.transition_rules.get(step)
+            if not next_step_func:
+                raise ValueError(f"No compiled path for step: {step}")
+            step = next_step_func(state)
+            # Execute deterministic action instead of LLM planning
+            state["last_executed"] = step
+        return state
+
+# Drop-in replacement yielding sub-second execution instead of 170s LLM chains
+workflow = CompiledWorkflow()
+final_state = workflow.execute({"query": "Find user records in database"})
+```
+* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.14492v1)
 
 ---
 
-### [3. Can the Confidence and Decisions of System 1 Models Be Trusted? An Explainability and Perturbation Audit of Jev-Style Decision Models](https://arxiv.org/abs/2611.12521v1)
-* **Authors:** Research Team (See arXiv for full author list)
-* **The 30-Second Summary:** System 1 decision models bypass slow text generation to output typed probabilities over predefined schemas in a single forward pass, offering extreme speed for routing and triage. This paper audits these models, proving they achieve near-perfect prompt injection defense while highlighting critical blind spots around cross-question interference.
-* **The Breakthrough Explained:**
-  1. **The Core Problem:** While sub-10B single-pass probability models are attractive for low-latency tasks like semantic routing and intent classification, engineers have lacked rigorous data on their calibration, robustness, and attribution faithfulness.
-  2. **The Key Breakthrough:** The authors rigorously audited sub-10B decision models across syntactic shifts, prompt injection defense, and attribution faithfulness, mapping precisely when and why single-pass probability models can be trusted.
-  3. **Real-world Results:** The audit proves that these models achieve **near-perfect prompt injection defense (up to 0.998 AUROC)** with lightning-fast inference (**under 60ms**), validating a cheaper, high-reliability architecture for latency-critical orchestration layers and security guardrails.
-* **🛠️ How You Can Apply This (Developer Takeaway):** Replace bulky generative LLMs with an optimized, typed-output System 1 classifier for your gateway security and semantic routing layer:
-  ```python
-  from pydantic import BaseModel, Field
+### [AutoScaffold: AI-Guided Scaffolding for Reinforcement Learning of Language Models](https://arxiv.org/abs/2611.14515v1)
+* **Authors:** Zijian Zhang, Rizhen Hu, Jiangweizhi Peng, Shiyang Li
+* **The 30-Second Summary:** Standard Reinforcement Learning with Verifiable Rewards (RLVR) relies on crude binary pass/fail scores that discard rich learning signals. *AutoScaffold* introduces an automated training architecture where a frozen teacher model dynamically generates custom hints and scaffolding when a student model struggles, gradually fading them away as the student masters the domain.
+* **The Breakthrough Explained:** Manually crafting intermediate hints and step-by-step scaffolds for custom enterprise reasoning or coding tasks does not scale. *AutoScaffold* solves this by implementing a teacher-student training feedback loop. When the student model hits a performance bottleneck, the teacher model inspects the failure state, writes targeted contextual hints on the fly to bridge the reasoning gap, and automatically removes the scaffolding once competence is established, accelerating model convergence.
+* **🛠️ How You Can Apply This (Developer Takeaway):** When fine-tuning open-source models (Llama-3, Mistral) via RL or DPO on complex internal workflows, implement a dynamic curriculum dataset wrapper that injects AI-generated hints during early epochs:
 
-  class System1RoutingDecision(BaseModel):
-      intent: str = Field(description="Classified user intent")
-      confidence: float = Field(ge=0.0, le=1.0, description="Calibrated decision confidence")
-      is_safe: bool = Field(description="Adversarial prompt injection defense flag")
+```python
+from dataclasses import dataclass
+from typing import Optional
 
-  def fast_intent_router(input_tensor, system_1_model) -> System1RoutingDecision:
-      # Executes in <60ms via single-forward-pass typed probability distribution
-      logits = system_1_model(input_tensor)
-      return System1RoutingDecision.from_logits(logits)
-  ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.12521v1](https://arxiv.org/pdf/2611.12521v1)
+@dataclass
+class TrainingSample:
+    prompt: str
+    target: str
+    difficulty_score: float
+
+class AutoScaffoldDataset:
+    def __init__(self, teacher_model, student_eval_metric):
+        self.teacher = teacher_model
+        self.eval_metric = eval_metric
+
+    def get_enhanced_prompt(self, sample: TrainingSample, student_success_rate: float) -> str:
+        """Dynamically scaffolds hard samples based on student performance."""
+        if student_success_rate < 0.4 and sample.difficulty_score > 0.7:
+            # Teacher generates a targeted hint on the fly
+            hint = self.teacher.generate(f"Provide a subtle hint for solving: {sample.prompt}")
+            return f"Context/Hint: {hint}\n\nTask: {sample.prompt}"
+        
+        # Fade scaffolding as student competence increases
+        return sample.prompt
+```
+* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.14515v1)
+
+---
+
+### [FERN: Cross-Benchmark Table Retrieval for Text-to-SQL with Frozen Retrievers and Learned Ranking](https://arxiv.org/abs/2611.14477v1)
+* **Authors:** Arjun Rao, Nishant Gopinath
+* **The 30-Second Summary:** Text-to-SQL agents over massive relational databases struggle with schema context windows and high latency when using expensive frontier LLMs for table retrieval. *FERN* eliminates generative LLMs from the retrieval phase entirely, fusing multiple frozen embedding retrievers with a lightweight gradient-boosted decision tree (`LightGBM`) to rank candidate schemas in milliseconds.
+* **The Breakthrough Explained:** Instead of relying on a frontier model to parse keywords and filter through thousands of database schemas, *FERN* casts a wide net using three cheap, frozen embedding models. It then extracts up to 120 structural features for each candidate table and feeds them into a `LightGBM` ranker. This achieves near state-of-the-art table selection accuracy with a median latency of just 208 ms on a single A100 GPU and zero hosted generative model calls for the retrieval step.
+* **🛠️ How You Can Apply This (Developer Takeaway):** Decouple your Text-to-SQL pipeline by replacing LLM-based schema selection with a high-speed feature extraction and ranking ensemble:
+
+```python
+import lightgbm as lgb
+import numpy as np
+from typing import List, Dict
+
+class TableRankerPipeline:
+    def __init__(self, lgb_model_path: str):
+        # Load lightweight gradient-boosted decision tree ranker
+        self.ranker = lgb.Booster(model_file=lgb_model_path)
+        
+    def extract_features(self, user_question: str, table_schema: Dict) -> np.ndarray:
+        """Extracts structural features (e.g., name overlap, foreign keys, embedding similarity)."""
+        features = [
+            len(set(user_question.lower().split()).intersection(set(table_schema['name'].lower().split()))),
+            float(table_schema.get('column_count', 0)),
+            table_schema.get('embedding_cosine_similarity', 0.0),
+            float(table_schema.get('has_foreign_keys', False))
+        ]
+        return np.array(features)
+
+    def retrieve_top_tables(self, user_question: str, candidate_tables: List[Dict], top_k: int = 5) -> List[Dict]:
+        X = np.array([self.extract_features(user_question, t) for t in candidate_tables])
+        scores = self.ranker.predict(X)
+        
+        ranked_indices = np.argsort(scores)[::-1][:top_k]
+        return [candidate_tables[i] for i in ranked_indices]
+
+# Ultra-low latency (<250ms) zero-LLM retrieval phase before sending schema to SQL generator
+pipeline = TableRankerPipeline("ferns_ranker.txt")
+selected_tables = pipeline.retrieve_top_tables("Show total revenue by region", candidate_pool)
+```
+* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.14477v1)
 
 ---
 
 ### 💡 Builder Trend of the Day
-Today's research reveals a powerful overarching shift: **AI engineering is moving away from brute-force generative scaling and toward highly optimized, state-aware modular architectures.** Whether it is accelerating frozen target models via phrase-level speculative decoding, building self-improving evidence graphs for multi-agent loops, or deploying sub-10B System 1 models for lightning-fast, secure routing—the winning paradigm for 2026 is **precision, structural feedback loops, and infrastructure efficiency.**
+The common thread across all three breakthroughs is **systematic de-escalation of runtime LLM dependency in favor of compiled, specialized, or deterministic architectures**. Whether it's replacing dynamic agentic planning loops with compiled execution code (*ReTrace*), replacing crude binary reinforcement learning rewards with AI-guided teacher scaffolding (*AutoScaffold*), or replacing expensive frontier model schema lookups with lightweight boosted decision trees (*FERN*), the industry is shifting away from unconstrained runtime inference. Applied AI engineering in 2026 is about using large models to *build, scaffold, and train* deterministic software systems rather than letting them guess their way through production loops in real-time.
