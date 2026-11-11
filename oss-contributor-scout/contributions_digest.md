@@ -1,75 +1,70 @@
-# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-10)
+# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-11)
 
 ---
 
-### Issue 1: Add GET /admins for the indexed contract admin set
-* **Repo & Issue:** [D-Indexer/Indexer-Backend #138](https://github.com/D-Indexer/Indexer-Backend/issues/138) ⭐ 9 stars
-* **Profile Value:** Demonstrates production-grade Web3 backend architecture mastery, clean separation of concerns (services, controllers, routes), and rigorous PostgreSQL query design.
-* **The Challenge:** Expose a new REST endpoint (`GET /admins`) to query the indexed contract administrator set, complete with Zod validation, camelCase mapping, and database query optimization.
-* **Technical Plan:**
-  1. Inspect existing service (`src/services/portfolio.ts`) and controller patterns.
-  2. Implement `src/services/admins.ts` with explicit column selection (no `SELECT *`) and snake_case to camelCase field mapping.
-  3. Implement `src/controllers/admins.ts` to handle request execution, errors, and `200 OK` responses.
-  4. Wire up the Express router in `src/routes/admins.ts` and mount it under `/admins`.
-  5. Add Zod schema validation for any query parameters.
-  6. Write integration tests using `supertest` in `tests/admins.test.ts`.
-* **Ready-to-Post Claim Comment:**
+### 1. [`memtomem/memtomem` — Issue #3242](https://github.com/memtomem/memtomem/issues/3242) (★ 23)
+- **Profile Value:** Showcases meticulous Python testing practices and rigorous edge-case handling using `pytest` parameterization for CLI utility functions.
+- **The Challenge:** The private helper function `_parse_duration` (used by `mm session start --auto-end-stale`) lacks direct, comprehensive unit test coverage for valid duration formats and invalid inputs that trigger `click.BadParameter`.
+- **Technical Plan:**
+  1. Inspect `memtomem/cli.py` to examine the exact implementation and regex/parsing logic of `_parse_duration`.
+  2. Create a dedicated test file `tests/test_parse_duration.py` to isolate the test suite.
+  3. Implement `@pytest.mark.parametrize` matrices covering valid time units (`s`, `m`, `h`, `d`) and invalid cases (`""`, `"abc"`, `"10x"`, `"-5m"`).
+  4. Run `pytest tests/test_parse_duration.py -v` to verify 100% test pass rates and proper exception raising.
+- **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I'd love to take on this issue. 
+  Hi maintainers! I would love to tackle this issue and add comprehensive unit test coverage for `_parse_duration`. 
 
-  My planned approach:
-  1. Create a dedicated service (`src/services/admins.ts`) executing an optimized query (explicit column selection, avoiding `SELECT *`) with snake_case-to-camelCase mapping.
-  2. Implement the corresponding controller (`src/controllers/admins.ts`) and register a new Express route (`GET /admins`).
-  3. Add robust Zod validation for query parameters and handle errors gracefully.
-  4. Write comprehensive integration tests in `tests/admins.test.ts` verifying correct JSON payloads and status codes.
+  My planned approach is:
+  1. Isolate the parsing logic in `memtomem/cli.py`.
+  2. Create a dedicated test module (`tests/test_parse_duration.py`) utilizing `pytest.mark.parametrize`.
+  3. Cover valid string formats (`s`, `m`, `h`, `d`) as well as edge cases and invalid inputs that correctly trigger `click.BadParameter`.
+  4. Validate everything locally via pytest.
 
-  Please assign this to me, and I'll have a clean PR ready shortly!
+  Please let me know if this sounds good, and feel free to assign this issue to me!
   ```
 
 ---
 
-### Issue 2: Paginate GET /templates with a keyset cursor
-* **Repo & Issue:** [D-Indexer/Indexer-Backend #137](https://github.com/D-Indexer/Indexer-Backend/issues/137) ⭐ 9 stars
-* **Profile Value:** Showcases senior-level backend engineering skills by replacing naive `OFFSET` pagination with scalable keyset (cursor-based) pagination.
-* **The Challenge:** Refactor the `GET /templates` endpoint to use keyset pagination (`WHERE id > $1 ORDER BY id LIMIT $2`), validate inputs with Zod, handle `400 Bad Request` edge cases, and return `nextAfter` metadata.
-* **Technical Plan:**
-  1. Define strict Zod validation schemas for query parameters (`limit` and `cursor`), returning `400` on failure.
-  2. Update `src/services/templates.ts` to implement cursor-based parameterized SQL filtering.
-  3. Calculate and attach the `nextAfter` cursor in the pagination response metadata.
-  4. Write automated test suites in `tests/templates.test.ts` covering initial fetches, subsequent batched pagination, and invalid cursor error handling.
-* **Ready-to-Post Claim Comment:**
+### 2. [`reticlehq/reticle` — Issue #1707](https://github.com/reticlehq/reticle/issues/1707) (★ 1,265)
+- **Profile Value:** Demonstrates full-stack CLI tooling and Developer Experience (DX) competence on a fast-growing, high-visibility repository (1.2k+ stars).
+- **The Challenge:** The project initialization flow (`init`) does not recognize Expo projects, and Expo web's default development port (`8081`) is missing from the dev-server port scanner manifest.
+- **Technical Plan:**
+  1. Inspect `init/src/detect/detect.ts` to understand how framework detection rules are structured and add Expo detection (`package.json` / `app.json` checks).
+  2. Inspect `init/src/detect/dev-server-ports.ts` and add port `8081` to the default port registry.
+  3. Add unit test coverage in `init/src/detect/__tests__/detect.test.ts` mocking an Expo workspace.
+  4. Execute the test suite via `npm test` to verify correctness.
+- **Ready-to-Post Claim Comment:**
   ```markdown
-  Hello! I would love to contribute by implementing keyset pagination for `GET /templates`.
+  Hello! I'd like to contribute a fix for Expo detection and port scanning support.
 
   My planned approach:
-  1. Update query parameter validation using Zod to strictly validate `limit` and `cursor` inputs, returning `400 Bad Request` on malformed values.
-  2. Refactor `src/services/templates.ts` to use a cursor-based SQL pattern (`WHERE id > $1 ORDER BY id LIMIT $2`) for optimal performance at scale.
-  3. Calculate the `nextAfter` cursor and format the response payload to include clean pagination metadata.
-  4. Add unit and integration test coverage in `tests/templates.test.ts` for boundary conditions and sequential batching.
+  1. Update `init/src/detect/detect.ts` to properly recognize Expo project structures and configuration files.
+  2. Add port `8081` to the scanner manifest in `init/src/detect/dev-server-ports.ts`.
+  3. Write corresponding unit tests in `detect.test.ts` to prevent regressions.
+  4. Run the test suite locally.
 
   Could you please assign this issue to me? Thanks!
   ```
 
 ---
 
-### Issue 3: Add an --output option for the Chrome CSV path
-* **Repo & Issue:** [MehdiMamas/bitwarden-to-apple-keychain-converter-script #5](https://github.com/MehdiMamas/bitwarden-to-apple-keychain-converter-script/issues/5) ⭐ 1 star
-* **Profile Value:** Highlights strong developer experience (DX) focus, clean Python CLI script design using `argparse`, and rigorous test-driven documentation updates.
-* **The Challenge:** Add an optional `--output` / `-o` flag to the CLI utility to allow users to specify a custom destination path for the converted CSV file while preserving backward-compatible defaults.
-* **Technical Plan:**
-  1. Update `argparse` configuration in the primary Python script to accept `-o` / `--output` with a sensible default value.
-  2. Refactor core file I/O functions to accept the dynamic output path variable.
-  3. Update `README.md` usage documentation with clear examples of the new flag.
-  4. Write pytest tests verifying file creation at custom paths via `tmp_path` fixtures alongside fallback default behavior.
-* **Ready-to-Post Claim Comment:**
+### 3. [`vllm-project/vllm-ascend` — Issue #14150](https://github.com/vllm-project/vllm-ascend/issues/14150) (★ 3,072)
+- **Profile Value:** Highlights advanced systems-level problem solving, concurrency auditing, and multi-threading safety in distributed AI inference infrastructure.
+- **The Challenge:** Under concurrent multi-threaded execution (background KV cache transfer threads interacting with forward pass read/write paths), unprotected or improperly locked accesses to `_invalid_block_ids` can lead to race conditions and state corruption.
+- **Technical Plan:**
+  1. Audit all references to `_invalid_block_ids` across the codebase using `git grep`.
+  2. Analyze lock acquisition scopes and identify unprotected read/write operations.
+  3. Wrap unprotected operations inside thread-safe critical sections using the appropriate locking primitives (e.g., `with self.lock:`).
+  4. Write a multi-threaded stress test in `tests/core/` to simulate concurrent reads/mutations and verify thread safety.
+- **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi! I'd like to pick up this task and add the `--output` CLI option.
+  Hi team, I would like to take on this concurrency audit task for `_invalid_block_ids`.
 
   My planned approach:
-  1. Update `argparse` in the main script to introduce an optional `-o / --output` argument while keeping the existing default output filename intact.
-  2. Pass the custom output path dynamically into the conversion logic.
-  3. Update the `README.md` to document the new flag with usage examples.
-  4. Add a pytest test case using temporary directories to ensure custom output paths and fallback defaults work reliably.
+  1. Grep and inspect all code paths reading or mutating `_invalid_block_ids`.
+  2. Audit lock scopes to ensure all access points are properly guarded under critical sections.
+  3. Implement thread-safe synchronization to prevent race conditions during concurrent KV cache transfers and execution reads.
+  4. Add a multi-threaded unit test verifying thread safety under high concurrency.
 
-  Please assign this issue to me!
+  Please assign this to me if it's still available. Thank you!
   ```
