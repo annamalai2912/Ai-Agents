@@ -1,45 +1,78 @@
-# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-12)
-
-- ### 1. [Add RAGAS evaluation benchmark suite (faithfulness & answer relevancy)](https://github.com/Data-science-and-analytics-by-shivansh/Enterprise-Knowledge-Agent-RAG-/issues/2) *(Stars: 0)*
-- **Profile Value:** Demonstrates advanced AI engineering skills in LLM application evaluation, metric design, and CI quality gating using RAGAS.
-- **The Challenge:** The repository lacks automated evaluation metrics to measure output quality, making it difficult to detect regressions in prompt design, chunking, or retrieval strategies.
-- **Technical Plan:**
-  1. Add `ragas` and `datasets` to `requirements.txt`.
-  2. Create a golden evaluation dataset (`evaluation/test_dataset.json`) with sample questions, contexts, answers, and ground truths.
-  3. Implement the evaluation harness (`evaluation/evaluate_rag.py`) leveraging LangChain and RAGAS metrics (*faithfulness*, *answer_relevancy*, *context_precision*).
-  4. Wrap the evaluation runner inside an automated pytest suite (`tests/test_evaluation.py`) enforcing minimum score thresholds.
-- **Ready-to-Post Claim Comment:**
-  ```markdown
-  Hi @Data-science-and-analytics-by-shivansh, I would love to tackle this issue and add a robust RAGAS evaluation framework! 
-
-  My plan is to:
-  1. Add `ragas` and `datasets` to `requirements.txt`.
-  2. Create a domain-specific golden evaluation dataset under `evaluation/test_dataset.json`.
-  3. Implement the evaluation harness script (`evaluation/evaluate_rag.py`) to measure *faithfulness*, *answer_relevancy*, and *context_precision*.
-  4. Integrate a pytest wrapper (`tests/test_evaluation.py`) to enforce quality thresholds in CI.
-
-  Could you please assign this issue to me? I'll have a clean PR ready shortly!
-  ```
+# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-13)
 
 ---
 
-- ### 2. [Checks: use assert instead of returning True](https://github.com/amirouche/bb.py/issues/86) *(Stars: 6)*
-- **Profile Value:** Showcases strong command over Python idioms, refactoring discipline, error-handling patterns, and test-driven development (TDD).
-- **The Challenge:** Existing check and validation utilities return boolean values (`True`/`False`) instead of raising native `AssertionError` exceptions, requiring a comprehensive codebase refactor of checks, error-explanation wrappers, tests, and documentation.
+### ### [Issue #1: Use Product Hunt's official API instead of scraping](https://github.com/Poushali-02/seedreach/issues/15) · 11 stars
+
+- **Profile Value:** Demonstrates your ability to modernize brittle web scrapers into robust, production-grade applications using official GraphQL APIs and graceful fallback patterns.
+- **The Challenge:** Replace the unreliable web scraping implementation in `src/sourcing/product_hunt.py` with Product Hunt's official GraphQL API, while keeping a fallback mechanism if credentials are missing or requests fail.
 - **Technical Plan:**
-  1. Audit and locate all functions returning boolean check statuses.
-  2. Refactor functions to use native `assert` statements with descriptive failure messages.
-  3. Update error explanation/interception logic (e.g., `check_explain`) to catch `AssertionError` instead of checking for falsy return values.
-  4. Update the test suite to use `pytest.raises(AssertionError)` and check documentation/transcripts for outdated examples.
+  1. Add `PRODUCTHUNT_API_TOKEN` to `.env.example`.
+  2. Rewrite `src/sourcing/product_hunt.py` to query the official GraphQL endpoint (`https://api.producthunt.com/v2/api/graphql`).
+  3. Wrap the API execution in a `try/except` block and implement a graceful fallback to the legacy scraper or empty state if the token is missing/invalid.
+  4. Update `README.md` with instructions on how to generate and configure a Product Hunt Developer Token.
+  5. Add `tests/test_product_hunt.py` using `unittest.mock` or `responses` to test both the happy path and the fallback path.
+
 - **Ready-to-Post Claim Comment:**
-  ```markdown
-  Hi @amirouche, I'd like to help refactor the checking framework to use native `assert` statements instead of returning boolean values.
+```markdown
+Hi @Poushali-02! I'd love to tackle this issue. Replacing the web scraper with the official Product Hunt GraphQL API (complete with a graceful fallback for missing tokens) is a great way to make the tool much more robust. 
 
-  My planned approach:
-  1. Identify and refactor check functions across the library to raise `AssertionError` with descriptive failure messages.
-  2. Update error-explanation wrappers (like `check_explain`) to catch `AssertionError` and format failure reports.
-  3. Update `tests/` to use `pytest.raises(AssertionError)`.
-  4. Review and update documentation/transcripts to align with the new assertion-based paradigm.
+My planned approach:
+1. Update `.env.example` with `PRODUCTHUNT_API_TOKEN`.
+2. Implement the GraphQL client in `src/sourcing/product_hunt.py` with proper error handling and fallback logic.
+3. Update documentation in `README.md`.
+4. Add unit tests in `tests/test_product_hunt.py` covering both authenticated and fallback scenarios.
 
-  Please assign this issue to me when you get a chance!
-  ```
+Please assign this to me when you have a moment, and I'll get a PR open soon!
+```
+
+---
+
+### ### [Issue #2: Add a funding-news source (startups that just raised)](https://github.com/Poushali-02/seedreach/issues/14) · 11 stars
+
+- **Profile Value:** Highlights strong backend data-processing skills, RSS parsing proficiency, and the ability to design clean custom extraction algorithms to isolate target startup domains.
+- **The Challenge:** Build a brand new lead source provider (`src/sourcing/funding_news.py`) that parses RSS feeds from tech/startup news outlets and intelligently extracts the startup's actual landing page while filtering out social media and investor links.
+- **Technical Plan:**
+  1. Create `src/sourcing/funding_news.py` modeling the architectural pattern of `src/sourcing/launch_hn.py`.
+  2. Use `feedparser` to ingest RSS articles from targeted funding-announcement feeds.
+  3. Implement URL parsing and regex/BeautifulSoup extraction logic to pull outbound links while filtering out blacklisted domains (e.g., Twitter, LinkedIn, VC websites).
+  4. Register and invoke the new source inside `src/pipeline.py`.
+  5. Document the new funding-news source configuration in `README.md`.
+  6. Add unit tests in `tests/test_funding_news.py` using local XML fixtures to verify reliable domain extraction.
+
+- **Ready-to-Post Claim Comment:**
+```markdown
+Hi @Poushali-02! This sounds like a fantastic addition to Seedreach. I'd love to implement the funding-news lead source.
+
+My planned approach:
+1. Create `src/sourcing/funding_news.py` following the existing pattern in `launch_hn.py` using `feedparser`.
+2. Write robust link extraction and filtering logic to isolate the startup's actual website while ignoring social and investor links.
+3. Integrate the new source into `src/pipeline.py`.
+4. Update `README.md` and add unit tests with mock RSS fixtures in `tests/test_funding_news.py`.
+
+Could you please assign this issue to me? Thanks!
+```
+
+---
+
+### ### [Issue #3: `sqlmesh plan --restate-model` requires model files to be present](https://github.com/SQLMesh/sqlmesh/issues/3260) · 3,350 stars
+
+- **Profile Value:** Showcases advanced debugging and contribution capability within a massive, highly respected production-grade data framework (`sqlmesh`), adding serious weight to your data or backend engineering resume.
+- **The Challenge:** Fix a CLI workflow bottleneck where `sqlmesh plan --restate-model` strictly requires local model definition files to exist on disk, even when users need to restate data for models whose files have been removed or refactored.
+- **Technical Plan:**
+  1. Locate the validation check in the `plan` command handler (`sqlmesh/cli/` or context validation methods) where `--restate-model` checks for local model file presence.
+  2. Relax the strict filesystem check so that SQLMesh checks the existing snapshot state / metadata store for the target model if its local definition file is missing.
+  3. Ensure a clear, descriptive error is raised only if the model exists neither locally nor in historical snapshots.
+  4. Add a comprehensive regression test in `tests/core/test_plan.py` where a model definition file is absent but restatement planning succeeds via historical snapshots.
+
+- **Ready-to-Post Claim Comment:**
+```markdown
+Hi maintainers! I would love to pick up this issue. Removing the strict local file requirement for `--restate-model` when historical snapshots exist will be a great quality-of-life improvement for the CLI.
+
+My planned approach:
+1. Trace the validation logic in the `plan` command and `Context.plan()` where model file existence is enforced.
+2. Update the check to fall back to the metadata store/snapshots if the local file is absent, while preserving helpful error messages for truly unknown models.
+3. Add an integration test in `tests/core/test_plan.py` verifying successful plan generation when the local model file has been removed.
+
+Could you please assign this issue to me? I'm ready to get started.
+```
