@@ -1,72 +1,70 @@
-# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-14)
+# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-15)
 
 ---
 
-### [Nano-Collective/nanocoder — Issue #2194](https://github.com/Nano-Collective/nanocoder/issues/2194) (~2,570 stars)
-
-- **Profile Value:** Fixing local file operations and git integration edge cases in a high-visibility AI coding agent demonstrates your ability to write resilient TypeScript code handling cross-platform filesystem quirks.
-- **The Challenge:** Git diff commands quote or escape non-ASCII file paths by default, causing `nanocoder` to skip files with non-ASCII characters (e.g., `café.txt`) during checkpointing and state tracking.
-- **Technical Plan:**
-  1. Inspect `src/utils/git.ts` and `src/agent/checkpoint.ts` to locate subprocess execution for `git diff --name-only`.
-  2. Update the Git command arguments to include `-c core.quotePath=false` (or use `-z` for null-terminated output parsing).
-  3. Ensure downstream file path normalization correctly handles UTF-8 characters without octal escape interference.
-  4. Write an automated integration/unit test verifying that files with non-ASCII names are correctly captured in checkpoint diffs.
-- **Ready-to-Post Claim Comment:**
+### [Dfunder/stellarAid-web #1140](https://github.com/Dfunder/stellarAid-web/issues/1140) — Mark decorative SVGs as `aria-hidden` and give meaningful images alternative text
+* **Repo Star Count:** Active Community Repository (Stellar Ecosystem)
+* **Profile Value:** Demonstrates your commitment to web standards and inclusive design (a11y) in a production React/TypeScript codebase.
+* **The Challenge:** Multiple inline SVGs and images across the app lack proper WAI-ARIA attributes and alternative text, resulting in accessibility compliance failures.
+* **Technical Plan:**
+  1. Audit `app/` and `components/` for inline `<svg>` and `<img>` elements.
+  2. Add `aria-hidden="true" focusable="false"` to purely decorative SVGs.
+  3. Ensure meaningful images have descriptive `alt` text and decorative images have empty `alt=""` attributes.
+  4. Write automated component accessibility tests using `jest-axe`.
+* **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I'd love to tackle this issue. 
+  Hi maintainers! I'd love to pick up this issue and improve the accessibility compliance of our components. 
 
-  I've investigated the root cause: by default, Git escapes non-ASCII characters in path outputs during `git diff --name-only`, causing path mismatches in the TypeScript code. 
+  **My Planned Approach:**
+  1. Audit all icon SVGs and apply `aria-hidden="true"` alongside `focusable="false"`.
+  2. Verify all `<img>` tags have appropriate descriptive or empty `alt` attributes.
+  3. Add a Jest unit test using `jest-axe` to prevent future accessibility regressions.
 
-  **Proposed fix:**
-  1. Update git subprocess execution flags to include `-c core.quotePath=false` (or switch to `-z` for null-delimited path parsing).
-  2. Ensure UTF-8 path normalization is preserved across diff parsers.
-  3. Add a robust test case in `src/__tests__/git.test.ts` covering non-ASCII file names (e.g., `café.txt`).
-
-  Please assign this issue to me so I can open a pull request!
+  Could you please assign this issue to me? Thanks!
   ```
 
 ---
 
-### [tanveer-arch/promptdrift — Issue #62](https://github.com/tanveer-arch/promptdrift/issues/62) (4 stars)
-
-- **Profile Value:** Showcases your attention to data privacy, robust error handling, and pythonic warning architecture in modern LLM testing applications.
-- **The Challenge:** Redaction failures (such as invalid regex patterns or failing custom callbacks) are currently silently swallowed using `pass`, creating a security and debugging blind spot.
-- **Technical Plan:**
-  1. Define a custom warning class `RedactionWarning(UserWarning)` in `src/promptdrift/exceptions.py`.
-  2. Locate the redaction execution block in `src/promptdrift/capture/redaction.py`.
-  3. Replace the silent `pass` in `try...except` blocks with `warnings.warn()` while safely returning the original unredacted text for backward compatibility.
-  4. Add unit tests using `pytest.warns()` in `tests/test_redaction.py`.
-- **Ready-to-Post Claim Comment:**
+### [kubestellar/console #25010](https://github.com/kubestellar/console/issues/25010) — [Auto-QA] Components fetching data without loading/error states
+* **Repo Star Count:** ⭐ 152
+* **Profile Value:** Showcases your ability to write resilient enterprise-grade frontend applications with proper asynchronous error handling.
+* **The Challenge:** Automated QA identified React components and hooks (such as `CardChrome.tsx` and dashboard views) that fetch data without managing loading or error states.
+* **Technical Plan:**
+  1. Locate target components flagged in the issue trace lacking `isLoading` or `isError` handling.
+  2. Integrate loading spinners/skeletons and user-friendly error alert banners with retry capabilities.
+  3. Refactor `CardChrome.tsx` to handle loading, error, and success lifecycles cleanly.
+  4. Write React Testing Library unit tests simulating network failures.
+* **Ready-to-Post Claim Comment:**
   ```markdown
-  Hello! I would like to pick up this issue. 
+  Hi maintainers! I would like to tackle this automated QA finding to improve frontend resilience.
 
-  **Proposed approach:**
-  1. Introduce a custom `RedactionWarning(UserWarning)` subclass in `src/promptdrift/exceptions.py`.
-  2. Replace broad `except` blocks swallowing redaction errors with `warnings.warn(..., RedactionWarning)` while maintaining fallback behavior (returning the original string).
-  3. Add unit tests using `pytest.warns()` to verify proper warning emission and fallback handling.
+  **My Planned Approach:**
+  1. Inspect the flagged components and hooks (starting with `CardChrome.tsx`).
+  2. Implement proper state management for loading indicators and error fallback banners with retry options.
+  3. Add robust unit tests using React Testing Library to verify component behavior under network failure conditions.
 
-  Could you please assign this to me?
+  Please assign this issue to me when you have a moment. Thank you!
   ```
 
 ---
 
-### [tanveer-arch/promptdrift — Issue #61](https://github.com/tanveer-arch/promptdrift/issues/61) (4 stars)
-
-- **Profile Value:** Highlights your capability to design clean Pydantic data models and extend evaluation pipelines in production Python test harnesses.
-- **The Challenge:** The evaluation module lacks multi-value assertion types (`contains_all` and `contains_any`), which are frequently needed to verify compliance disclaimers or required keyword sets in LLM outputs.
-- **Technical Plan:**
-  1. Update Pydantic assertion models in `src/promptdrift/models/test.py` to support list-based inputs for `contains_all` and `contains_any`.
-  2. Implement evaluation dispatch logic inside `src/promptdrift/evaluators/deterministic.py` for both new assertion types.
-  3. Ensure `EvaluationResult.reason` returns precise, informative details regarding which items matched or failed.
-  4. Write comprehensive unit test coverage in `tests/evaluators/test_deterministic.py`.
-- **Ready-to-Post Claim Comment:**
+### [hivegate-ai/hivegate #204](https://github.com/hivegate-ai/hivegate-ai/issues/204) — Neon MCP: tabulate which tools are safe in read-only mode
+* **Repo Star Count:** ⭐ 9
+* **Profile Value:** Highlights your expertise in bleeding-edge AI infrastructure, Model Context Protocol (MCP), and secure AI agent tool use.
+* **The Challenge:** Documenting and classifying Neon database MCP tools to ensure Agno AI agents do not execute unauthorized mutating operations in read-only mode.
+* **Technical Plan:**
+  1. Inspect Neon's public MCP tool specifications and schema definitions.
+  2. Categorize all tools into read-only safe (`readOnlySafe: true`) versus mutating/unsafe.
+  3. Construct a clear, comprehensive Markdown table detailing tool names, descriptions, and safety flags.
+  4. Add the documentation file to the repository and link it correctly.
+* **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I'd love to implement `contains_all` and `contains_any` assertion types for the evaluation engine.
+  Hi maintainers! I'd love to help out by documenting the Neon MCP toolset security classifications.
 
-  **Proposed approach:**
-  1. Update `AssertionConfig` models in `src/promptdrift/models/test.py` to accept list values for the new assertion types.
-  2. Implement validation and check logic in `src/promptdrift/evaluators/deterministic.py` with clear, informative failure reasons.
-  3. Add a thorough parameterized test suite in `tests/evaluators/test_deterministic.py` covering passing and failing states.
+  **My Planned Approach:**
+  1. Review Neon's MCP tool specifications to catalog available database operations.
+  2. Create a structured Markdown reference table mapping each tool to its `readOnlySafe` status and risk assessment.
+  3. Add the documentation to the repository and verify all links and formatting.
 
-  Please assign this issue to me so I can get started!
+  Could you please assign this issue to me? Thanks!
   ```
