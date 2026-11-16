@@ -1,51 +1,50 @@
-# 🎯 Remote Tech Opportunity Radar (2026-11-09)
+# 🎯 Remote Tech Opportunity Radar (2026-11-16)
 
-### [Sanctuary Computer — Head of Technology](https://weworkremotely.com/remote-jobs/sanctuary-computer-head-of-technology)
-* **Match Score:** 91%
-* **Key Overlap:**
-  - Explicit alignment with engineering "in the era of agentic computer code" and multi-agent AI systems.
-  - High-agency, autonomous architectural leadership suited for a creative, worker-owned collective (`garden3d`).
-  - Polyglot technical scope spanning high-level Python systems down to cross-platform apps and IoT.
-* **Missing / Growth Skills:** Experience managing creative agency production workflows or client-facing digital product lifecycles.
-* **Tailored 3-Sentence Pitch:** I've spent my career building zero-to-one backend systems and multi-agent LLM infrastructure that thrive on high-agency execution rather than corporate bloat. As Head of Technology, I'd love to help Sanctuary Computer push the envelope on agentic code workflows and robust software product delivery. Let's connect to discuss how I can scale your technical vision.
-
----
-
-### [Airbnb — Operations Engineer, BizTech](https://weworkremotely.com/remote-jobs/airbnb-operations-engineer-biztech)
-* **Match Score:** 88%
-* **Key Overlap:**
-  - Hands-on experience building production services with LLM-powered triage and intelligent automation.
-  - Robust backend design and asynchronous processing (Python, AsyncIO) tailored for high-scale internal tooling.
-  - Strong focus on scaling AI-enabled workflows rather than maintaining legacy infrastructure.
-* **Missing / Growth Skills:** Specialized enterprise BizTech ecosystem specifics (e.g., complex internal ERP or Workday integrations).
-* **Tailored 3-Sentence Pitch:** I build high-performance Python backends and production-grade LLM triage pipelines that automate complex operational bottlenecks. Your Global Operations team's push into intelligent automation is an exact match for my hands-on background in shipping AI-enabled workflows. I’d love to show you how I can help scale Airbnb's internal operations tooling.
+### [Vertex Marketing Group](https://weworkremotely.com/remote-jobs/vertex-marketing-group-distribution-engineer) — Distribution Engineer
+* **Match Score:** 94%
+* **Key Overlap:** 
+  * Building autonomous agent loops and high-volume multi-platform posting engines.
+  * Low-level device automation (iOS/Android) and infrastructure orchestration.
+  * High-agency, direct-with-founder IC engineering culture.
+* **Missing / Growth Skills:** 
+  * Advanced proprietary mobile mocking tools and Appium configurations.
+* **Tailored 3-Sentence Pitch:** I saw you're scaling code-driven distribution fleets for mobile devices and need someone who can wire up autonomous agents to handle high-volume posting without missing a beat. I’ve spent my recent cycles building end-to-end browser and device automation loops that run headless and self-heal under rate limits. Let's chat about how I can ship your next distribution pipeline directly with you this week.
 
 ---
 
-### [Samsara — Staff Software Engineer](https://weworkremotely.com/remote-jobs/samsara-staff-software-engineer)
+### [Ritual](https://weworkremotely.com/remote-jobs/ritual-core-protocol-engineer) — Core Protocol Engineer
 * **Match Score:** 85%
-* **Key Overlap:**
-  - Heavy backend engineering expertise in Go, Rust, and high-performance SQL for massive data ingestion pipelines.
-  - Experience bridging raw backend streams with modern AI/ML inference layers on real-world datasets.
-  - Proven capability to independently drive zero-to-one architectural problems at a staff level.
-* **Missing / Growth Skills:** Specialized embedded/IoT device protocols and edge-computing physical constraints.
-* **Tailored 3-Sentence Pitch:** I design resilient backend data pipelines and high-throughput ingestion engines using Go, Rust, and SQL. Samsara’s mission to apply AI to trillions of real-world IoT data points hits right at the intersection of my systems engineering and ML infrastructure background. I'd welcome the chance to discuss how I can lead zero-to-one technical initiatives on your core data teams.
+* **Key Overlap:** 
+  * High-performance backend engineering and distributed compute orchestration (Infernet).
+  * Systems-level architecture merging AI-native computation with decentralized layers.
+* **Missing / Growth Skills:** 
+  * Deep Rust/Go proficiency for core execution clients (Geth/Reth) and specific L1/L2 consensus mechanics.
+* **Tailored 3-Sentence Pitch:** Building sovereign execution layers for AI demands the kind of rigorous, low-latency systems engineering I've applied to distributed compute and backend orchestration. While my core is in high-performance Python and systems automation, I pick up protocol mechanics and distributed clients rapidly. I'd love to show you how I'd approach scaling compute orchestration for Infernet.
 
 ---
 
-### [Alloy — Founding Forward Deployed Engineer](https://weworkremotely.com/remote-jobs/alloy-founding-forward-deployed-engineer)
-* **Match Score:** 89%
-* **Key Overlap:**
-  - High-agency, zero-bureaucracy mindset built for fast-moving fintech environments.
-  - Deep experience designing secure webhooks, complex enterprise API integrations, and robust data pipelines.
-  - Client-facing technical execution translating ambiguous requirements into clean, end-to-end architectures.
-* **Missing / Growth Skills:** Deep domain-specific financial regulatory frameworks (KYC/AML compliance nuances).
-* **Tailored 3-Sentence Pitch:** As a high-agency engineer who loves owning systems end-to-end, I thrive on walking into complex client environments and shipping robust API and data pipelines immediately. My background bridging heavy backend infrastructure with modern LLM-driven tooling makes me uniquely equipped to tackle Alloy's enterprise deployment challenges. Let's talk about how I can accelerate your forward-deployed initiatives from day one.
+### [Growth Minded](https://weworkremotely.com/remote-jobs/growth-minded-senior-data-engineer) — Senior Data Engineer
+* **Match Score:** 91%
+* **Key Overlap:** 
+  * Data layer ownership for multi-location automated action platforms.
+  * Native fluency in daily AI-assisted workflows (**Claude Code**, LLM structured outputs).
+  * Zero-bureaucracy environment reporting directly to the product lead and founder.
+* **Missing / Growth Skills:** 
+  * Familiarity with their exact proprietary analytics warehouses and niche visualization layers.
+* **Tailored 3-Sentence Pitch:** Your requirement for heavy daily usage of Claude Code and agentic tooling is exactly how I build data pipelines and automated action layers today. I specialize in spinning up robust Python backends and structured data flows that turn chaotic inputs into proactive business insights. Let's connect so I can show you a few autonomous data pipelines I've shipped recently.
+
+---
+
+### [OfferUp](https://weworkremotely.com/remote-jobs/offerup-software-development-engineer-ii-remote-colombia) — Software Development Engineer II
+* **Match Score:** 88%
+* **Key Overlap:** 
+  * **LLM-powered catalog enrichment** using Amazon Bedrock.
+  * High-visibility backend services and scalable media pipelines.
+* **Missing / Growth Skills:** 
+  * Enterprise AWS Bedrock IAM configurations and legacy corporate deployment pipelines.
+* **Tailored 3-Sentence Pitch:** I've been heavily focused on operationalizing LLMs for structured data processing and automated catalog enrichment, matching your team's current work on Amazon Bedrock. My background in Python backend engineering allows me to step straight into high-scale media pipelines and design robust architectural features from day one. I'd love to discuss how I can accelerate your upcoming catalog enrichment milestones.
 
 ---
 
 ### 💡 Portfolio Recommendation
-To become an irresistible candidate for these roles, build and publish a **"Self-Healing Agentic Operations Gateway"**—a lean open-source demo repository in Python and Rust. 
-
-* **What it does:** An asynchronous API gateway (built with Rust/Go for performance, orchestrated in Python) that ingests incoming webhooks or IoT-style data payloads, routes them through a multi-agent LLM triage pipeline to detect anomalies or errors, and automatically generates, tests, and deploys its own hotfix patches via pull requests.
-* **Why it works:** It directly proves your capability across all four roles: it showcases **Samsara-grade data ingestion**, **Airbnb-style LLM triage automation**, **Alloy-level secure webhook/API handling**, and **Sanctuary Computer-level agentic code generation**.
+To make yourself completely irresistible for these roles, build and publish **"AgentFleet"**: a lightweight, open-source Python daemon that orchestrates headless mobile/browser automation tasks via local LLM function calling, complete with an automated self-healing retry loop and a real-time WebSocket telemetry dashboard. This single project visually proves your mastery over device/browser automation (Vertex), distributed compute orchestration (Ritual), agentic coding workflows (Growth Minded), and scalable pipeline design (OfferUp) all at once.
