@@ -1,105 +1,101 @@
-# 🧠 Daily AI Research Digest (2026-11-16)
+# 🧠 Daily AI Research Digest (2026-11-18)
 
----
-
-### [StreamEmbed: Real-Time Indexing from Pixels for Screenshot Retrieval](https://arxiv.org/abs/2611.18516v1)
-* **Authors:** Research Team (See arXiv for full author list)
-* **The 30-Second Summary:** Building local visual AI assistants and computer-use agents has historically been bottlenecked by slow, high-latency vision encoders that process continuous screen streams at over 2 seconds per frame. *StreamEmbed* solves this by using pixel-level differences to drive spatial token pruning and temporal KV-cache reuse, backed by a tiny learned adapter that indexes screen history up to 3.7× faster with a tiny memory footprint.
-* **The Breakthrough Explained:** 
-  - **The Core Problem:** Processing every full screenshot from scratch is computationally brutal and creates a massive lag in local visual AI applications, while traditional OCR sacrifices critical visual context like layouts, colors, and spatial relationships.
-  - **The Key Breakthrough:** Treating screen streams like video streams, the system recognizes that most pixels do not change from frame to frame. It drops unchanged visual areas via spatial token pruning, recycles previous computations via temporal KV-cache reuse, and maps compressed representations into a searchable vector space.
-  - **Real-World Results:** Delivers up to a 3.7× indexing speedup with zero loss in retrieval accuracy, shrinking a simulated year of continuous screenshots into just 0.13 GB of RAM.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Implement a frame-diffing gate before hitting your vision embedding model to avoid redundant processing of static UI elements.
+- ### [Spool: Low-Latency Streaming Inference for Hybrid Vision-Language Models](https://arxiv.org/abs/2611.23228v1)
+- **Authors:** Spool Research Team
+- **The 30-Second Summary:** Spool introduces a training-free framework that caches per-frame state transformations to maintain sliding-window historical context over long video streams without recalculating the history. This architectural breakthrough reduces p95 time-to-first-token by a geometric mean of $6.6\times$ while simultaneously improving task accuracy for real-time vision agents.
+- **The Breakthrough Explained:** 
+  When building real-time vision agents (like live video assistants or robotics), the AI needs to maintain a running memory of past video frames. Traditional streaming architectures compress all historical video frames into a single, shared state vector. The problem? When a frame gets too old and needs to be "forgotten" to slide the time window forward, the system cannot easily subtract it. To update the memory, developers traditionally had to re-run the entire video window through the model backbone, which completely destroys real-time latency.
+  
+  Spool solves this with a training-free mathematical trick: instead of lumping everything into one messy state, it caches individual state transformations for each frame and stitches them together using associative math. Because the operations are associative, the system can cleanly "drop" old historical frames out of the equation and add new ones on the fly without recalculating the history.
+- **🛠️ How You Can Apply This (Developer Takeaway):** 
+  Implement an associative state-caching layer in your streaming client pipeline rather than passing monolithic context windows. 
   ```python
-  import cv2
-  import numpy as np
+  class AssociativeStateStream:
+      def __init__(self, backbone_model):
+          self.model = backbone_model
+          self.state_ledger = []
 
-  class PixelDiffGate:
-      def __init__(self, threshold=0.02):
-          self.threshold = threshold
-          self.last_frame = None
-
-      def should_process(self, current_frame: np.ndarray) -> bool:
-          """Returns True only if visual changes exceed the threshold."""
-          if self.last_frame is None:
-              self.last_frame = current_frame
-              return True
+      def push_frame(self, frame_tensor):
+          # Compute decoupled per-frame transformation state
+          frame_state = self.model.encode_transform(frame_tensor)
+          self.state_ledger.append(frame_state)
           
-          # Calculate mean absolute pixel difference percentage
-          diff = np.abs(current_frame.astype(float) - self.last_frame.astype(float))
-          change_ratio = np.mean(diff) / 255.0
-          
-          if change_ratio >= self.threshold:
-              self.last_frame = current_frame
-              return True
-          return False  # Skip embedding; reuse previous frame's KV cache/vector
-  ```
-* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.18516v1)
-
----
-
-### [ModHarness-RL: Recasting Harnesses as Learnable and Evolving Programs for Agentic RL](https://arxiv.org/abs/2611.18533v1)
-* **Authors:** Research Team (See arXiv for full author list)
-* **The 30-Second Summary:** Agentic workflows rely on brittle, hand-written prompt scaffolds and hardcoded intervention loops that instantly become suboptimal whenever the underlying LLM is fine-tuned or undergoes RL. *ModHarness-RL* reimagines the harness as a learnable, evolving program split into a *Compression program* (managing context history) and a *Steering program* (supplying guidance) that optimize alongside the agent via trajectory execution and feedback.
-* **The Breakthrough Explained:** 
-  - **The Core Problem:** Static prompt harnesses and hand-coded loops break down as soon as a model's internal capability curve shifts during reinforcement learning or fine-tuning, leading to hallucinations and task failures.
-  - **The Key Breakthrough:** Automating prompt engineering and scaffolding logic by turning the harness itself into code that learns and evolves dynamically using execution trajectories and reward feedback.
-  - **Real-World Results:** Eliminates manual trial-and-error prompt engineering, yielding robust, self-adapting agent architectures that match the underlying model's current capability curve for higher task completion rates.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Treat your prompt wrappers and memory management scripts as mutable Python functions inside your agent optimization loop, allowing an automated routine to mutate their parameters based on trajectory success scores.
-  ```python
-  # Conceptual pattern: Evolving code-based harnesses alongside agent policies
-  class EvolvingCompressionHarness:
-      def __init__(self, summary_token_budget: int, retention_strategy: str):
-          self.summary_token_budget = summary_token_budget
-          self.retention_strategy = retention_strategy  # e.g., 'sliding_window' or 'entity_extract'
-
-      def compress(self, trajectory_history: list[str]) -> str:
-          # Dynamic program execution driven by optimization feedback
-          if self.retention_strategy == 'entity_extract':
-              return f"[Entity-Focused Summary Budget: {self.summary_token_budget}]..."
-          return f"[Standard Window Budget: {self.summary_token_budget}]..."
-
-  # The optimization loop updates harness parameters alongside model weights based on task rewards.
-  ```
-* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.18533v1)
-
----
-
-### [WeightBench: Evaluating Language Models as Weight-Space Programmers](https://arxiv.org/abs/2611.18553v1)
-* **Authors:** Research Team (See arXiv for full author list)
-* **The 30-Second Summary:** As LLMs transition from generating text to directly operating on neural network weights—a paradigm called **Weight-Space Programming (WSP)**—there has been no standardized way to safely evaluate their ability to read, patch, write, and compress model parameters. *WeightBench* provides a rigorous OS-level sandbox and evaluation framework spanning 42 distinct tasks designed to test automated neural network surgery.
-* **The Breakthrough Explained:** 
-  - **The Core Problem:** Automated model editing and self-improving architectures lack a standardized evaluation environment to test whether an LLM can successfully reason over tensors and surgically fix behavioral flaws inside model weights without breaking them.
-  - **The Key Breakthrough:** Establishing a definitive open-source OS-level sandbox spanning 42 neural network manipulation tasks that test an LLM's capacity for direct weight-space reasoning and programmatic patching.
-  - **Real-World Results:** Unlocks systematic testing and deployment for frontier models capable of performing automated model surgery and self-improving neural modifications without expensive full retraining loops.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Use a tensor-inspection hook combined with a code-execution sandbox to allow your model to write and execute parameter patches safely.
-  ```python
-  import torch
-  import torch.nn as nn
-
-  class WeightSpaceSandbox:
-      def __init__(self, model: nn.Module):
-          self.model = model
-
-      def apply_patch(self, patch_code_snippet: str) -> bool:
-          """Safely evaluates a model-generated weight modification script."""
-          try:
-              # Create a secure local execution scope containing model parameters
-              local_scope = {"model": self.model, "torch": torch}
+          # Enforce sliding window capacity associatively without full re-run
+          if len(self.state_ledger) > 64:
+              self.state_ledger.pop(0) # O(1) associative drop
               
-              # Execute the model-written tensor patching code
-              exec(patch_code_snippet, {}, local_scope)
-              return True
-          except Exception as e:
-              print(f"Weight patch failed safety/execution check: {e}")
-              return False
+          return self.synthesize_current_context()
+
+      def synthesize_current_context(self):
+          # Fold cached states via associative scan
+          return reduce_associatively(self.state_ledger)
   ```
-* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.18553v1)
+- **PDF Link:** [https://arxiv.org/pdf/2611.23228v1.pdf](https://arxiv.org/pdf/2611.23228v1.pdf)
+
+---
+
+- ### [FastFrames: Video Generation at Interactive Latency](https://arxiv.org/abs/2611.23226v1)
+- **Authors:** FastFrames Engineering Group
+- **The 30-Second Summary:** FastFrames re-engineers the video generation pipeline by profiling and optimizing neglected infrastructure bottlenecks like VAE decoding and KV cache updates. Running on NVIDIA B200 hardware, it achieves 28 responses per second on a 1.3B model (36ms per frame) while matching state-of-the-art generation quality.
+- **The Breakthrough Explained:** 
+  Video generation has always been treated like batch rendering—taking seconds or minutes per frame. When researchers dug into *why* video models were so slow, they found that the actual generation model wasn't even the main culprit; auxiliary operations like decoding the video pixels (VAE decoding) and managing historical memory (KV cache updates) were silently devouring over 50% of total inference time.
+  
+  FastFrames profiles the inference pipeline and swaps out bloated decoding steps and optimizes KV cache management for modern hardware, streamlining the data flow so that video frames can be streamed out just like text tokens in a Large Language Model.
+- **🛠️ How You Can Apply This (Developer Takeaway):** 
+  De-couple your generation engine from synchronous heavy-pixel decoding. Pipe raw latent frames through streaming asynchronous VAE workers while keeping KV caches pinned in fast memory:
+  ```python
+  import asyncio
+
+  class InteractiveVideoPipeline:
+      def __init__(self, generator_model, lightweight_decoder):
+          self.generator = generator_model
+          self.decoder = lightweight_decoder # Optimized VAE decoder
+
+      async def stream_frames(self, prompt_stream):
+          async for latent_chunk in self.generator.generate_latents(prompt_stream):
+              # Offload heavy pixel decoding to an async pipeline thread/worker
+              pixels = await asyncio.to_thread(self.decoder.decode, latent_chunk)
+              yield pixels
+  ```
+- **PDF Link:** [https://arxiv.org/pdf/2611.23226v1.pdf](https://arxiv.org/pdf/2611.23226v1.pdf)
+
+---
+
+- ### [Agent Trust Infrastructure (ATI): A Federated Identity, Trust, Attestation, and Accountability Architecture for Cross-Organization Autonomous AI Agents](https://arxiv.org/abs/2611.23202v1)
+- **Authors:** ATI Consortium
+- **The 30-Second Summary:** ATI provides a framework-independent security architecture using PKI, Zero Trust, and remote attestation with peer organizational CAs (AgentCAs) for cross-organizational agent interactions. Implemented as an external security enforcement proxy, it adds only ~174 microseconds of overhead while raising attack containment from 43% to 84%.
+- **The Breakthrough Explained:** 
+  Autonomous agents are starting to leave safe, single-company sandboxes to transact with agents from other organizations (e.g., an enterprise procurement agent negotiating with an external supplier agent). Right now, the AI ecosystem has zero security primitives for this, leaving cross-organizational agent workflows wide open to prompt injection, impersonation, and unauthorized API calls.
+  
+  ATI borrows battle-tested concepts from traditional web security—Public Key Infrastructure (PKI), Zero Trust, and remote attestation—and adapts them for AI agents using decentralized peer organizational authorities (AgentCAs) and IETF WIMSE workload tokens.
+- **🛠️ How You Can Apply This (Developer Takeaway):** 
+  Implement an external security proxy layer in front of your agent framework tools to validate incoming cryptographic workload tokens before executing downstream agent calls:
+  ```python
+  from fastapi import FastAPI, HTTPException, Request
+  import jwt # Assuming IETF WIMSE compatible workload tokens
+
+  app = FastAPI()
+
+  @app.post("/agent/execute-tool")
+  async def enforce_agent_trust(request: Request):
+      auth_header = request.headers.get("Authorization")
+      if not auth_header or not auth_header.startswith("Bearer "):
+          raise HTTPException(status_code=401, detail="Missing ATI Workload Token")
+      
+      token = auth_header.split(" ")[1]
+      try:
+          # Verify peer AgentCA signature and remote attestation claims
+          claims = jwt.decode(token, options={"verify_signature": True}, algorithms=["ES256"])
+          if not claims.get("attestation_verified") or "procurement:write" not in claims.get("scopes", []):
+              raise HTTPException(status_code=403, detail="Unauthorized agent action or invalid attestation")
+      except Exception as e:
+          raise HTTPException(status_code=403, detail=str(e))
+          
+      return {"status": "authorized", "agent_id": claims.get("sub")}
+  ```
+- **PDF Link:** [https://arxiv.org/pdf/2611.23202v1.pdf](https://arxiv.org/pdf/2611.23202v1.pdf)
 
 ---
 
 ### 💡 Builder Trend of the Day
-Today's papers reveal that AI engineering is shifting rapidly from **static orchestration to dynamic, meta-level control systems**. Whether it is pruning pixel streams to optimize local computer-use agents (*StreamEmbed*), auto-evolving prompt and memory harnesses during RL training (*ModHarness-RL*), or letting LLMs perform direct tensor surgery via weight-space programming (*WeightBench*), the builder paradigm is clear: **we are no longer just writing code for models to run—we are building architectures that allow models to optimize their own memory, scaffolding, and internal parameters in real time.**
+The papers released today reveal that AI engineering is officially pivoting from **isolated model optimization** to **real-time, multi-agent systems infrastructure**. Whether it's processing streaming video frames associatively (Spool), driving generation loops down to text-token latencies via pipeline profiling (FastFrames), or securing cross-organizational transactions with cryptographic workload identity (ATI), the collective bottleneck is no longer model intelligence—it's **systems-level integration, latency reduction, and zero-trust security**. Builders are no longer just tuning prompts or fine-tuning weights; they are architecting production-grade distributed operating systems for AI.
