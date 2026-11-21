@@ -1,73 +1,68 @@
-# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-20)
+# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-21)
 
 ---
 
-### [Mossad-esc/stellar-footprint-engine #81: security(logging): Automatic Redaction of Bearer Tokens & Private Keys in Logs](https://github.com/Mossad-esc/stellar-footprint-engine/issues/81)
-* **Repo Star Count:** 0 stars (emerging backend infrastructure project)
-
-- **Profile Value:** Demonstrates enterprise-grade security compliance and proactive data leak prevention in backend logging pipelines.
-- **The Challenge:** Application logs risk exposing sensitive authorization headers (`Bearer`) and high-entropy Stellar secret signing keys (`S[A-Z0-9]{55}`) to logging aggregators.
-- **Technical Plan:**
-  1. Create a dedicated utility module with regex engines targeting Stellar secret keys and Bearer tokens.
-  2. Implement a custom Pino logger wrapper/serializer with recursive string sanitization and configured `redact` paths.
-  3. Wire the sanitized logger instance into the application's HTTP request middleware (`pino-http`).
-  4. Write comprehensive Jest/Supertest assertions validating that sensitive secrets are successfully replaced with `[REDACTED]` prior to stdout emission.
-- **Ready-to-Post Claim Comment:**
+### 1. [Daily-spending check undercounts when an agent has more than 200 activities](https://github.com/naninu123/4evergent/issues/260) (⭐ 5)
+* **Profile Value:** Fixing authorization/spending logic vulnerabilities in financial and AI agent infrastructure demonstrates high-stakes backend state validation mastery for your portfolio.
+* **The Challenge:** The policy engine uses a hardcoded limit (`listByAgent(agentId, 200)`) to check daily spending. If an agent executes over 200 activities in a day, transactions past the 200-item window are silently truncated, allowing agents to bypass spending limits.
+* **Technical Plan:**
+  1. Inspect `src/store/ActivityStore.ts` and `src/policy/PolicyEngine.ts`.
+  2. Extend `ActivityStore` to support a time-bounded query (e.g., `sumCostsByAgentSince(agentId, startOfDay)`) or implement an iterative pagination loop in `PolicyEngine.getDailySpent`.
+  3. Update `PolicyEngine.getDailySpent` to calculate the accurate cumulative sum using the UTC day start timestamp.
+  4. Add unit tests covering datasets exceeding 200 daily activities and edge cases around day boundaries.
+* **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I'd love to tackle this security hardening issue. 
+  Hi maintainers! I’d love to tackle this issue. 
 
-  My planned approach:
-  1. Implement a custom string-sanitization hook and recursive replacer in Pino to catch un-redacted Stellar secret keys (`/S[A-Z0-9]{55}/g`) and Bearer tokens.
-  2. Configure default redaction paths for request headers and body keys (`authorization`, `password`, `secretKey`, `privateKey`).
-  3. Add a dedicated unit test suite confirming that sensitive strings are securely stripped before log output.
+  **Planned Approach:**
+  I will update `PolicyEngine.getDailySpent` and the `ActivityStore` layer to avoid arbitrary pagination truncation. Instead of fetching a hardcoded limit of 200 records, I will implement a time-bounded query/pagination mechanism filtering from the start of the current UTC day to ensure all daily activities are accurately summed. I'll also add comprehensive unit tests covering over-limit datasets and day-boundary edge cases.
 
-  Could you please assign this issue to me so I can open a PR?
+  Please assign this to me when you have a moment!
   ```
 
 ---
 
-### [Miracle656/veil #1406: CI runs the tests of one contract out of seven](https://github.com/Miracle656/veil/issues/1406)
-* **Repo Star Count:** 14 stars (passkey-powered smart wallet platform on Soroban)
-
-- **Profile Value:** Showcases advanced CI/CD pipeline engineering, Cargo workspace proficiency, and workflow optimization in a Rust ecosystem.
-- **The Challenge:** GitHub Actions (`ci.yml`) is currently executing tests for only 1 out of 7 smart contract crates due to hardcoded targets or missing workspace flags.
-- **Technical Plan:**
-  1. Inspect the root `Cargo.toml` workspace members array to verify all 7 crates are registered.
-  2. Review `.github/workflows/ci.yml` and identify hardcoded `cargo test -p` steps.
-  3. Update the workflow to execute `cargo test --workspace --all-targets` to guarantee full coverage of the entire smart contract suite.
-  4. Clean up stale comments and verify local test execution before pushing.
-- **Ready-to-Post Claim Comment:**
+### 2. [Add unit tests for the simulator process reader and stderr tail buffer](https://github.com/blockchain-maxis/signet/issues/924) (⭐ 3)
+* **Profile Value:** Showcases advanced Go systems-programming competence, rigorous edge-case testing, and deep familiarity with low-level process management and buffer handling.
+* **The Challenge:** The signet CLI simulator manages background processes and streams but lacks exhaustive table-driven unit test coverage in Go (`cli/internal/simulator/process_test.go`) for line framing, CRLF handling, and buffer limits.
+* **Technical Plan:**
+  1. Inspect `cli/internal/simulator/process.go` to understand `readLine`, `tailBuffer`, and stream reader signatures.
+  2. Create/expand `cli/internal/simulator/process_test.go`.
+  3. Implement table-driven tests for line framing/CRLF normalization, tail-buffer capacity constraints (64 KiB/64 MiB limits dropping old entries correctly), and unterminated streams.
+  4. Run `go test -v -race` to verify concurrency safety and correctness.
+* **Ready-to-Post Claim Comment:**
   ```markdown
-  Hello! I noticed this CI bottleneck and would like to fix it. 
+  Hi maintainers! I would like to pick this up and add the requested unit tests.
 
-  My planned approach:
-  1. Inspect root `Cargo.toml` workspace declarations and verify the `.github/workflows/ci.yml` test steps.
-  2. Update the workflow runner to target the entire workspace (`cargo test --workspace --all-targets`) rather than a single isolated crate.
-  3. Clean up stale workflow comments and verify successful pipeline execution.
+  **Planned Approach:**
+  I'll write comprehensive table-driven tests in `cli/internal/simulator/process_test.go` covering:
+  1. Line framing and mixed CRLF (`\n` vs `\r\n`) normalization.
+  2. Tail-buffer capacity limits and ring-buffer drop behavior under overflow.
+  3. Unterminated stream handling (EOF mid-line).
 
-  Please assign this issue to me and I will get a PR ready shortly!
+  I'll ensure all tests pass cleanly under the Go race detector. Please assign this issue to me!
   ```
 
 ---
 
-### [Mossad-esc/stellar-footprint-engine #71: feat(rpc): Graceful Handling and Remediation Advice for RESOURCE_LIMIT_EXCEEDED](https://github.com/Mossad-esc/stellar-footprint-engine/issues/71)
-* **Repo Star Count:** 0 stars (Stellar/Soroban backend proxy engine)
-
-- **Profile Value:** Highlights robust API design, advanced error handling architecture, and Developer Experience (DevEx) improvements.
-- **The Challenge:** Stellar RPC node rejections (`RESOURCE_LIMIT_EXCEEDED`) currently surface as opaque 500 Internal Server Errors rather than actionable client feedback.
-- **Technical Plan:**
-  1. Create a custom error class (`ResourceLimitExceededError`) mapping to HTTP status code 422.
-  2. Build a recommendation parser that inspects CPU instruction limits, memory byte ceilings, and footprint entry counts from raw error details.
-  3. Update the RPC client error interceptor and global Express/Fastify error middleware to return structured JSON payloads with clear remediation advice.
-  4. Write unit tests validating correct error parsing and recommendation string generation.
-- **Ready-to-Post Claim Comment:**
+### 3. [Add `contracts update <id>`](https://github.com/cyfer-codes/stellarlens/issues/123) (⭐ 3)
+* **Profile Value:** Demonstrates end-to-end command-line interface design, SDK integration, and robust developer ergonomics/error management for a specialized Web3 indexing platform.
+* **The Challenge:** Stellarlens lacks a CLI command to update tracked Soroban smart contract metadata (like display names via `--name`), requiring manual database intervention or re-adding contracts.
+* **Technical Plan:**
+  1. Locate command definitions and service layers (e.g., `cmd/` and `internal/services/contracts.go`).
+  2. Implement the new `contracts update <id>` subcommand with the optional `--name` flag.
+  3. Add input validation ensuring `--name` is provided and non-empty, returning a clean usage error if omitted.
+  4. Wire up the SDK/service layer to safely update the database record and handle non-existent contract IDs gracefully.
+  5. Add CLI integration tests and verify manually.
+* **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I'd like to contribute by improving our API error resilience and developer experience for `RESOURCE_LIMIT_EXCEEDED` responses.
+  Hi maintainers! I'd love to contribute and implement the `contracts update <id>` command.
 
-  My planned approach:
-  1. Implement a custom `ResourceLimitExceededError` class mapped to an HTTP 422 Unprocessable Entity status.
-  2. Parse diagnostic error payloads (CPU instructions, memory, footprints) to generate specific, actionable remediation advice.
-  3. Wire the error handler into our global middleware and add thorough unit tests covering various resource limit breach scenarios.
+  **Planned Approach:**
+  1. Register the new `update` subcommand under the contracts CLI command with positional `<id>` argument and `--name` flag.
+  2. Implement validation to ensure `--name` is provided and non-empty, returning clear usage errors otherwise.
+  3. Wire up the service/SDK layer to handle database updates securely with proper "contract not found" handling.
+  4. Add CLI unit and integration tests.
 
-  Could you please assign this issue to me? Thanks!
+  Could you please assign this issue to me?
   ```
