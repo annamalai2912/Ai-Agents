@@ -1,68 +1,55 @@
-# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-21)
+# 🚀 Open-Source Contribution Opportunities (Generated 2026-11-22)
 
 ---
 
-### 1. [Daily-spending check undercounts when an agent has more than 200 activities](https://github.com/naninu123/4evergent/issues/260) (⭐ 5)
-* **Profile Value:** Fixing authorization/spending logic vulnerabilities in financial and AI agent infrastructure demonstrates high-stakes backend state validation mastery for your portfolio.
-* **The Challenge:** The policy engine uses a hardcoded limit (`listByAgent(agentId, 200)`) to check daily spending. If an agent executes over 200 activities in a day, transactions past the 200-item window are silently truncated, allowing agents to bypass spending limits.
-* **Technical Plan:**
-  1. Inspect `src/store/ActivityStore.ts` and `src/policy/PolicyEngine.ts`.
-  2. Extend `ActivityStore` to support a time-bounded query (e.g., `sumCostsByAgentSince(agentId, startOfDay)`) or implement an iterative pagination loop in `PolicyEngine.getDailySpent`.
-  3. Update `PolicyEngine.getDailySpent` to calculate the accurate cumulative sum using the UTC day start timestamp.
-  4. Add unit tests covering datasets exceeding 200 daily activities and edge cases around day boundaries.
-* **Ready-to-Post Claim Comment:**
+### 1. [cubrid-lab/cubrid-cookbook-python #580](https://github.com/cubrid-lab/cubrid-cookbook-python/issues/580) — *bug: preserve CSV export failures when pandas recipe cleanup fails*
+- **Repo Star Count:** 28 stars
+- **Profile Value:** Demonstrates mastery over robust systems engineering, resource management, and clean error propagation in Python data pipelines.
+- **The Challenge:** A data export recipe cleans up temporary resources in a `finally` block, but if the primary CSV export fails, the cleanup exception overrides and swallows the original error, masking the root cause.
+- **Technical Plan:**
+  1. Locate the pandas CSV export recipes and underlying database session/temporary file teardown logic.
+  2. Implement a protected try-except-finally block that preserves the primary exception (using exception chaining or local capture) while still executing cleanup.
+  3. Ensure cleanup failures during an active primary error are safely logged rather than raised.
+  4. Write a robust pytest regression test mocking both export and cleanup failures to verify original error preservation.
+- **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I’d love to tackle this issue. 
+  Hi maintainers! I'd love to tackle this issue. Swallowed root-cause exceptions during resource teardown can make debugging data pipelines painful. 
 
-  **Planned Approach:**
-  I will update `PolicyEngine.getDailySpent` and the `ActivityStore` layer to avoid arbitrary pagination truncation. Instead of fetching a hardcoded limit of 200 records, I will implement a time-bounded query/pagination mechanism filtering from the start of the current UTC day to ensure all daily activities are accurately summed. I'll also add comprehensive unit tests covering over-limit datasets and day-boundary edge cases.
-
-  Please assign this to me when you have a moment!
+  My plan is to update the recipe execution wrapper to capture and preserve the primary CSV export exception while ensuring `finally` cleanup routines execute safely. I'll also add a dedicated regression test with pytest covering this exact error scenario. Could you please assign this issue to me? Thanks!
   ```
 
 ---
 
-### 2. [Add unit tests for the simulator process reader and stderr tail buffer](https://github.com/blockchain-maxis/signet/issues/924) (⭐ 3)
-* **Profile Value:** Showcases advanced Go systems-programming competence, rigorous edge-case testing, and deep familiarity with low-level process management and buffer handling.
-* **The Challenge:** The signet CLI simulator manages background processes and streams but lacks exhaustive table-driven unit test coverage in Go (`cli/internal/simulator/process_test.go`) for line framing, CRLF handling, and buffer limits.
-* **Technical Plan:**
-  1. Inspect `cli/internal/simulator/process.go` to understand `readLine`, `tailBuffer`, and stream reader signatures.
-  2. Create/expand `cli/internal/simulator/process_test.go`.
-  3. Implement table-driven tests for line framing/CRLF normalization, tail-buffer capacity constraints (64 KiB/64 MiB limits dropping old entries correctly), and unterminated streams.
-  4. Run `go test -v -race` to verify concurrency safety and correctness.
-* **Ready-to-Post Claim Comment:**
+### 2. [teamrig/teamrig #834](https://github.com/teamrig/teamrig/issues/834) — *`meeting schedule --meets team/id` is refused for a sub-team's session*
+- **Repo Star Count:** 2 stars
+- **Profile Value:** Showcases practical TypeScript development and CLI design skills within the emerging AI agent-orchestration ecosystem.
+- **The Challenge:** The CLI tool fails to recognize or validate hierarchical sub-team identifiers (e.g., `parent-team/sub-team`) when running meeting scheduling commands due to flat string lookup restrictions.
+- **Technical Plan:**
+  1. Inspect `src/cli/commands/meeting.ts` and core team resolution/validation helpers.
+  2. Refactor the team identifier validation logic to support hierarchical path traversal instead of a flat lookup.
+  3. Ensure uniform support across both `meeting schedule` and `meeting start` sub-commands.
+  4. Add Jest integration/unit test cases verifying successful scheduling for valid sub-teams and clean error handling for invalid paths.
+- **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I would like to pick this up and add the requested unit tests.
+  Hello! I'd like to work on fixing this. It looks like the team lookup logic needs to support hierarchical path parsing for sub-teams when handling `--meets`. 
 
-  **Planned Approach:**
-  I'll write comprehensive table-driven tests in `cli/internal/simulator/process_test.go` covering:
-  1. Line framing and mixed CRLF (`\n` vs `\r\n`) normalization.
-  2. Tail-buffer capacity limits and ring-buffer drop behavior under overflow.
-  3. Unterminated stream handling (EOF mid-line).
-
-  I'll ensure all tests pass cleanly under the Go race detector. Please assign this issue to me!
+  My approach is to update the team resolution helper used by meeting commands to recursively traverse team hierarchies and add comprehensive Jest test cases for sub-team meeting scheduling. Please assign this to me when you have a moment!
   ```
 
 ---
 
-### 3. [Add `contracts update <id>`](https://github.com/cyfer-codes/stellarlens/issues/123) (⭐ 3)
-* **Profile Value:** Demonstrates end-to-end command-line interface design, SDK integration, and robust developer ergonomics/error management for a specialized Web3 indexing platform.
-* **The Challenge:** Stellarlens lacks a CLI command to update tracked Soroban smart contract metadata (like display names via `--name`), requiring manual database intervention or re-adding contracts.
-* **Technical Plan:**
-  1. Locate command definitions and service layers (e.g., `cmd/` and `internal/services/contracts.go`).
-  2. Implement the new `contracts update <id>` subcommand with the optional `--name` flag.
-  3. Add input validation ensuring `--name` is provided and non-empty, returning a clean usage error if omitted.
-  4. Wire up the SDK/service layer to safely update the database record and handle non-existent contract IDs gracefully.
-  5. Add CLI integration tests and verify manually.
-* **Ready-to-Post Claim Comment:**
+### 3. [cubrid-lab/cubrid-cookbook-python #581](https://github.com/cubrid-lab/cubrid-cookbook-python/issues/581) — *bug: honor environment markers in cookbook dependency preflight*
+- **Repo Star Count:** 28 stars
+- **Profile Value:** Highlights deep familiarity with Python packaging ecosystems, PEP 508 environment markers, and preflight validation standards.
+- **The Challenge:** Static dependency preflight checks fail or warn incorrectly on modern Python versions because they do not evaluate PEP 508 environment markers (e.g., `python_version<'3.12'`).
+- **Technical Plan:**
+  1. Locate the dependency preflight checker under `src/cubrid_cookbook/preflight/`.
+  2. Integrate `packaging.requirements.Requirement` and evaluate `req.marker` dynamically against the running runtime environment.
+  3. Filter out non-applicable conditional requirements before performing version checks.
+  4. Add pytest fixtures and unit tests covering environment-dependent markers across different Python interpreter versions.
+- **Ready-to-Post Claim Comment:**
   ```markdown
-  Hi maintainers! I'd love to contribute and implement the `contracts update <id>` command.
+  Hi maintainers! I'm interested in solving this packaging preflight issue. 
 
-  **Planned Approach:**
-  1. Register the new `update` subcommand under the contracts CLI command with positional `<id>` argument and `--name` flag.
-  2. Implement validation to ensure `--name` is provided and non-empty, returning clear usage errors otherwise.
-  3. Wire up the service/SDK layer to handle database updates securely with proper "contract not found" handling.
-  4. Add CLI unit and integration tests.
-
-  Could you please assign this issue to me?
+  My plan is to integrate `packaging.requirements` and evaluate PEP 508 environment markers dynamically during preflight checks so conditional dependencies are correctly handled based on the runtime environment. I'll also add unit tests with environment-dependent fixtures. Could you assign this issue to me? Thank you!
   ```
