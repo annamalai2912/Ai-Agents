@@ -1,50 +1,34 @@
-# 🎯 Remote Tech Opportunity Radar (2026-11-16)
+# 🎯 Remote Tech Opportunity Radar (2026-11-23)
 
-### [Vertex Marketing Group](https://weworkremotely.com/remote-jobs/vertex-marketing-group-distribution-engineer) — Distribution Engineer
-* **Match Score:** 94%
-* **Key Overlap:** 
-  * Building autonomous agent loops and high-volume multi-platform posting engines.
-  * Low-level device automation (iOS/Android) and infrastructure orchestration.
-  * High-agency, direct-with-founder IC engineering culture.
-* **Missing / Growth Skills:** 
-  * Advanced proprietary mobile mocking tools and Appium configurations.
-* **Tailored 3-Sentence Pitch:** I saw you're scaling code-driven distribution fleets for mobile devices and need someone who can wire up autonomous agents to handle high-volume posting without missing a beat. I’ve spent my recent cycles building end-to-end browser and device automation loops that run headless and self-heal under rate limits. Let's chat about how I can ship your next distribution pipeline directly with you this week.
+### [Toptal](https://weworkremotely.com/remote-jobs/toptal-ml-inference-engineer-terminal-bench-task-designer) ML Inference Engineer – Terminal-Bench Task Designer
+- **Match Score:** 92%
+- **Key Overlap:** 
+  - Direct alignment with AI agent frameworks and automated task execution in real command-line environments.
+  - Leverages systems-level Python and AsyncIO expertise for secure, sandboxed execution (Docker) and validation tooling.
+- **Missing / Growth Skills:** Specific familiarity with the *Terminal-Bench* suite and low-level Linux shell optimization nuances.
+- **Tailored 3-Sentence Pitch:** I saw you're building out Terminal-Bench task designs to rigorously evaluate LLM capabilities in real command-line environments. In my recent work, I've engineered autonomous agent frameworks using Python and AsyncIO that securely execute and validate complex CLI workflows inside isolated Docker sandboxes. I’d love to help you build bulletproof evaluation tasks that accurately expose agent limits and strengths.
 
 ---
 
-### [Ritual](https://weworkremotely.com/remote-jobs/ritual-core-protocol-engineer) — Core Protocol Engineer
-* **Match Score:** 85%
-* **Key Overlap:** 
-  * High-performance backend engineering and distributed compute orchestration (Infernet).
-  * Systems-level architecture merging AI-native computation with decentralized layers.
-* **Missing / Growth Skills:** 
-  * Deep Rust/Go proficiency for core execution clients (Geth/Reth) and specific L1/L2 consensus mechanics.
-* **Tailored 3-Sentence Pitch:** Building sovereign execution layers for AI demands the kind of rigorous, low-latency systems engineering I've applied to distributed compute and backend orchestration. While my core is in high-performance Python and systems automation, I pick up protocol mechanics and distributed clients rapidly. I'd love to show you how I'd approach scaling compute orchestration for Infernet.
+### [A.Team](https://weworkremotely.com/remote-jobs/a-team-senior-independent-ai-engineer-architect) Senior Independent AI Engineer / Architect
+- **Match Score:** 95%
+- **Key Overlap:** 
+  - Focuses on production-grade LLM systems infrastructure rather than basic wrapper demos.
+  - Directly utilizes core stack: advanced Python, agentic orchestration (CrewAI, LangChain, AutoGen), and vector RAG pipelines.
+- **Missing / Growth Skills:** Enterprise multi-tenant security frameworks and advanced MLOps telemetry tools depending on specific client assignments.
+- **Tailored 3-Sentence Pitch:** I build production-grade LLM systems and autonomous multi-agent architectures using Python, LangChain, and CrewAI, bypassing superficial wrappers to focus on scalable infrastructure. Given your focus on matching elite AI engineers with high-impact teams, I can immediately step in to architect and ship robust vector-search and agentic pipelines. Let's connect to discuss how my systems background can accelerate your clients' AI roadmaps.
 
 ---
 
-### [Growth Minded](https://weworkremotely.com/remote-jobs/growth-minded-senior-data-engineer) — Senior Data Engineer
-* **Match Score:** 91%
-* **Key Overlap:** 
-  * Data layer ownership for multi-location automated action platforms.
-  * Native fluency in daily AI-assisted workflows (**Claude Code**, LLM structured outputs).
-  * Zero-bureaucracy environment reporting directly to the product lead and founder.
-* **Missing / Growth Skills:** 
-  * Familiarity with their exact proprietary analytics warehouses and niche visualization layers.
-* **Tailored 3-Sentence Pitch:** Your requirement for heavy daily usage of Claude Code and agentic tooling is exactly how I build data pipelines and automated action layers today. I specialize in spinning up robust Python backends and structured data flows that turn chaotic inputs into proactive business insights. Let's connect so I can show you a few autonomous data pipelines I've shipped recently.
-
----
-
-### [OfferUp](https://weworkremotely.com/remote-jobs/offerup-software-development-engineer-ii-remote-colombia) — Software Development Engineer II
-* **Match Score:** 88%
-* **Key Overlap:** 
-  * **LLM-powered catalog enrichment** using Amazon Bedrock.
-  * High-visibility backend services and scalable media pipelines.
-* **Missing / Growth Skills:** 
-  * Enterprise AWS Bedrock IAM configurations and legacy corporate deployment pipelines.
-* **Tailored 3-Sentence Pitch:** I've been heavily focused on operationalizing LLMs for structured data processing and automated catalog enrichment, matching your team's current work on Amazon Bedrock. My background in Python backend engineering allows me to step straight into high-scale media pipelines and design robust architectural features from day one. I'd love to discuss how I can accelerate your upcoming catalog enrichment milestones.
+### [A.Team](https://weworkremotely.com/remote-jobs/a-team-senior-independent-software-developer-90-170-hr) Senior Independent Software Developer ($90-$170/hr)
+- **Match Score:** 88%
+- **Key Overlap:** 
+  - Caters to high-agency, autonomous backend missions that bypass enterprise bureaucracy to ship rapid production code.
+  - Accommodates multi-disciplinary backend strengths across Python, Go, and Rust alongside full-stack capabilities.
+- **Missing / Growth Skills:** Client-specific cloud infrastructure variations (AWS/GCP) and frontend state management frameworks depending on mission scope.
+- **Tailored 3-Sentence Pitch:** I’m a high-agency backend engineer specializing in Python, Go, and Rust, with a track record of cutting through bureaucracy to ship production-ready systems autonomously. Because I thrive in fast-moving, decentralized environments, I can drop into your client projects on day one to handle complex backend architecture and API integrations. I'd love to discuss upcoming missions where my systems background can deliver immediate ROI.
 
 ---
 
 ### 💡 Portfolio Recommendation
-To make yourself completely irresistible for these roles, build and publish **"AgentFleet"**: a lightweight, open-source Python daemon that orchestrates headless mobile/browser automation tasks via local LLM function calling, complete with an automated self-healing retry loop and a real-time WebSocket telemetry dashboard. This single project visually proves your mastery over device/browser automation (Vertex), distributed compute orchestration (Ritual), agentic coding workflows (Growth Minded), and scalable pipeline design (OfferUp) all at once.
+To make yourself completely irresistible for these specific roles, build and open-source a **"CLI-Agent-Sandbox"**: a lightweight, containerized harness in Python and Docker that spins up an isolated Linux terminal, deploys a CrewAI or LangChain agent with specific file-system tools, and automatically scores the agent's ability to debug a broken codebase from a raw prompt. Having this repository pinned on your GitHub provides concrete, undeniable proof that you understand both secure LLM inference evaluation and autonomous systems design.
