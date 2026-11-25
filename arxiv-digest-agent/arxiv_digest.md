@@ -1,126 +1,85 @@
-# 🧠 Daily AI Research Digest (2026-11-24)
+# 🧠 Daily AI Research Digest (2026-11-25)
 
 ---
 
-### [TowerBridge: Bridging the Dual-Encoder Modality Gap via Weight-Space Programming](https://arxiv.org/abs/2611.31233v1)
-* **Authors:** Research Team (See arXiv preprint for full author list)
-* **The 30-Second Summary:** Standard dual-encoder models suffer from a "modality gap" that degrades multimodal search and retrieval without expensive retraining. TowerBridge introduces weight-space programming, where an LLM agent directly edits model weights in closed form to close the gap in seconds.
+### [SAG-Mem-1.0 Technical Report](https://arxiv.org/abs/2611.33124v1)
+* **Authors:** SAG-Mem Research Team
+* **The 30-Second Summary:** Traditional conversational memory relies on expensive LLM summarization loops and heavy vector-embedding pipelines that introduce high latency and drop verbatim details. SAG-Mem solves this by utilizing a zero-inference write-time architecture paired with a multi-round BM25 lexical expansion and lightweight evidence evaluation at query time.
 * **The Breakthrough Explained:** 
-  Rather than fine-tuning via backpropagation, TowerBridge treats model weights as editable code. An LLM agent inspects the internal representations of text and image encoders, calculates precise linear adjustments, and applies closed-form weight edits. This instantly aligns the embedding spaces, boosting cross-modal retrieval without destroying out-of-the-box zero-shot capabilities.
+  Instead of using an LLM to extract or summarize text, SAG-Mem stores complete dialogue messages in clean, non-overlapping chunks with *zero model inference required during write-time*. At query time, it uses smart multi-round lexical expansion via BM25 paired with a lightweight evidence evaluator. It proves you don't need heavy semantic embedding extraction for long-term memory—just clean chunking and intelligent lexical routing, which drastically drops storage and indexing costs while outperforming complex memory architectures on benchmarks like LoCoMo and LongMemEval.
 * **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Instead of spinning up a multi-GPU training job to fix embedding alignment issues in your RAG pipeline, write a weight-surgery script that computes closed-form projection adjustments directly on the embedding matrices:
-
+  Replace your heavy vector-embedding generation pipeline and background LLM summarization workers with a hybrid BM25 + chunked raw-text store. 
   ```python
-  import torch
+  from rank_bm25 import BM25Okapi
 
-  def align_modalities_weight_space(text_encoder, image_encoder, calibration_loader):
-      """
-      Conceptual pattern for direct weight-space alignment of dual encoders 
-      without full backpropagation training cycles.
-      """
-      text_embeddings, image_embeddings = [], []
-      
-      # 1. Collect a small batch of paired representations
-      with torch.no_grad():
-          for batch in calibration_loader:
-              text_embeddings.append(text_encoder(batch['text']))
-              image_embeddings.append(image_encoder(batch['image']))
-              
-      T = torch.cat(text_embeddings)
-      I = torch.cat(image_embeddings)
-      
-      # 2. Compute closed-form linear transformation (Procrustes / Ridge Regression)
-      # W * T ~= I
-      # W = (I^T * T) * (T^T * T + lambda * I)^-1
-      lam = 1e-4
-      identity = torch.eye(T.shape[1], device=T.device)
-      W = torch.linalg.solve(T.T @ T + lam * identity, T.T @ I).T
-      
-      # 3. Inject weight adjustments directly into the projection layer
-      with torch.no_grad():
-          text_encoder.projection.weight.data = W @ text_encoder.projection.weight.data
-          
-      print("Weight-space programming complete: Modality gap bridged instantly.")
-      return text_encoder
-  ```
-* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.31233v1)
-
----
-
-### [ToolSmith: An Automatic Tool-Generation Framework for Multimodal Search Agents](https://arxiv.org/abs/2611.31198v1)
-* **Authors:** Research Team (See arXiv preprint for full author list)
-* **The 30-Second Summary:** Maintaining static libraries of APIs and tools for AI agents is brittle and fails on out-of-domain edge cases. ToolSmith allows multimodal search agents to dynamically write, test, and register their own custom tools on the fly from a lean base library.
-* **The Breakthrough Explained:** 
-  Rather than relying on a hardcoded toolkit, ToolSmith turns the agent into an active software developer. When faced with a complex search or multimodal reasoning task that existing tools cannot handle, the agent synthesizes a new Python tool, executes tests within a secure runtime, and saves it to its active library for future reuse, scaling its capabilities autonomously.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Implement a self-extending agent loop where failure to find an existing tool triggers code-generation, sandboxed validation, and dynamic registration into your orchestrator's registry:
-
-  ```python
-  class DynamicToolRegistry:
+  class ZeroInferenceMemory:
       def __init__(self):
-          self.tools = {}
+          self.chunks = []
+          self.tokenized_corpus = []
 
-      def register_tool(self, name: str, code_string: str):
-          """Dynamically compile and register an agent-generated tool."""
-          local_scope = {}
-          exec(code_string, globals(), local_scope)
-          self.tools[name] = local_scope[name]
-          print(f"[{name}] successfully compiled and added to agent registry.")
+      def add_turn(self, speaker: str, message: str):
+          # Zero-inference write: store raw text chunk and tokenize for BM25
+          chunk = f"{speaker}: {message}"
+          self.chunks.append(chunk)
+          self.tokenized_corpus.append(chunk.lower().split())
 
-  # Conceptual agent execution loop handling missing capabilities
-  registry = DynamicToolRegistry()
-  
-  def agent_orchestrator(task_prompt, required_tool_name):
-      if required_tool_name not in registry.tools:
-          print(f"Missing tool '{required_tool_name}'. Generating code...")
-          # LLM generates a Python function fulfilling the capability
-          generated_code = """
-def custom_multimodal_crop_filter(image_path, threshold=0.5):
-    # Agent-written implementation for custom edge case
-    return f"Processed {image_path} with threshold {threshold}"
-"""
-          registry.register_tool(required_tool_name, generated_code)
+      def query_memory(self, query: str, top_k: int = 3) -> list[str]:
+          # Query-time lexical routing via BM25
+          bm25 = BM25Okapi(self.tokenized_corpus)
+          tokenized_query = query.lower().split()
+          scores = bm25.get_scores(tokenized_query)
           
-      return registry.tools[required_tool_name]
+          # Return top scoring raw chunks instantly without embedding lookups
+          top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
+          return [self.chunks[i] for i in top_indices]
   ```
-* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.31198v1)
+* **PDF Link:** [https://arxiv.org/pdf/2611.33124v1.pdf](https://arxiv.org/pdf/2611.33124v1.pdf)
 
 ---
 
-### [Pruning Autonomous Driving VLAs: What to Preserve for Reasoning and Action](https://arxiv.org/abs/2611.31240v1)
-* **Authors:** Research Team (See arXiv preprint for full author list)
-* **The 30-Second Summary:** Vision-Language-Action (VLA) models are too heavy for real-time edge deployment, but standard pruning often causes reasoning collapse. This paper introduces MoOP, a surgical pruning method that achieves a 1.37x speedup and 36.6% memory reduction with zero post-pruning fine-tuning.
+### [CoT-Proxy: Cross-Format Transfer for Distilling Long-Horizon Policies](https://arxiv.org/abs/2611.33148v1)
+* **Authors:** CoT-Proxy Research Contributors
+* **The 30-Second Summary:** Distilling expensive frontier reasoning models (which output hidden chains-of-thought) into fast local models is difficult because teachers hide internal traces and lengthy reasoning introduces massive latency. CoT-Proxy bypasses this by training student models purely on final actions using lightweight "CoT-proxies" and a KL divergence penalty, allowing local models to activate their own native thinking style at inference time.
 * **The Breakthrough Explained:** 
-  The authors discovered how to identify and protect critical neural pathways responsible for multi-step reasoning and control actions inside massive VLA models. By pruning away redundant parameters outside these critical pathways without requiring retraining, they preserve 94.0% of dense performance while making models viable for resource-constrained edge hardware.
+  CoT-Proxy demonstrates a counterintuitive breakthrough: **you can completely drop the hidden chain-of-thought during fine-tuning.** By training a smaller student model purely on the teacher's final actions (combined with a KL divergence penalty to prevent drift) and using short post-action reasoning summaries ("CoT-proxies"), the student learns to behave like the frontier teacher. Crucially, at inference time, the student can *enable its own thinking style* and achieve massive accuracy boosts (e.g., jumping from 7% to 48% on AppWorld using GPT-derived trajectories), giving teams a direct recipe to distill closed models into fast local actors.
 * **🛠️ How You Can Apply This (Developer Takeaway):** 
-  When deploying large vision-action models to constrained hardware, prioritize structured magnitude-cum-gradient importance scoring on attention/MLP blocks tied to action heads, skipping fine-tuning stages by enforcing layer-wise error bounds:
+  When building a dataset to distill a proprietary reasoning model (like OpenAI o1/o3 or DeepSeek-R1) into an open-weights model (like Qwen-7B), strip out the verbose hidden thought tokens. Train only on the final tool calls/actions, accompanied by a compressed 1-sentence post-action justification schema:
+  ```json
+  {
+    "context": "User requested database migration script.",
+    "action_proxy": "Used python script to parse schema because direct SQL dump failed.",
+    "final_action": "EXECUTE python parse_schema.py"
+  }
+  ```
+* **PDF Link:** [https://arxiv.org/pdf/2611.33148v1.pdf](https://arxiv.org/pdf/2611.33148v1.pdf)
 
+---
+
+### [BriConstrain: Geometrically Constrained Decoding for Autoregressive Brick Assembly Generation](https://arxiv.org/abs/2611.33135v1)
+* **Authors:** BriConstrain Lab
+* **The 30-Second Summary:** Autoregressive models generating structured, physical, or multi-step configurations often hallucinate invalid states, forcing engineers to rely on wasteful "rejection sampling" loops. BriConstrain introduces geometrically constrained decoding, which intercepts next-token probabilities live at inference time to mask out invalid options using a structural oracle.
+* **The Breakthrough Explained:** 
+  Instead of letting a model generate blindly and discarding bad outputs, BriConstrain intercepts the model's next-token probabilities *live at inference time* and dynamically masks out invalid options using a structural/geometric oracle. It guarantees 100% validity on-the-fly without needing expensive, retry-heavy agentic loops, completely eliminating invalid generation states in spatial and structural assembly tasks.
+* **🛠️ How YouCan Apply This (Developer Takeaway):** 
+  Implement a custom Logits Processor in your generation loop (e.g., using Hugging Face Transformers) to prune syntax, structural, or business logic violations token-by-token:
   ```python
   import torch
-  import torch.nn as nn
+  from transformers import LogitsProcessor
 
-  def evaluate_and_prune_vla_layer(layer: nn.Module, sparsity_ratio: float = 0.3):
-      """
-      Conceptual structural pruning script targeting redundant weights 
-      while protecting critical reasoning pathways in VLA blocks.
-      """
-      weight_tensor = layer.weight.data
-      # Calculate importance score using weight magnitude and activation gradients
-      importance = torch.abs(weight_tensor) * torch.abs(layer.weight.grad if layer.weight.grad is not None else 1.0)
-      
-      # Determine threshold for bottom % of weights to zero out
-      k = int(importance.numel() * sparsity_ratio)
-      threshold = torch.kthvalue(importance.flatten(), k).values
-      
-      mask = importance > threshold
-      layer.weight.data *= mask.float()
-      
-      print(f"Surgically pruned layer to {100*(1-sparsity_ratio):.1f}% density with zero fine-tuning.")
-      return layer
+  class StructuralConstraintLogitsProcessor(LogitsProcessor):
+      def __init__(self, invalid_token_ids_fn):
+          self.invalid_token_ids_fn = invalid_token_ids_fn
+
+      def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
+          # Compute invalid tokens dynamically based on current generation state (the structural oracle)
+          invalid_ids = self.invalid_token_ids_fn(input_ids)
+          for token_id in invalid_ids:
+              scores[:, token_id] = -float('inf')  # Mask out invalid choices entirely
+          return scores
   ```
-* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.31240v1)
+* **PDF Link:** [https://arxiv.org/pdf/2611.33135v1.pdf](https://arxiv.org/pdf/2611.33135v1.pdf)
 
 ---
 
 ### 💡 Builder Trend of the Day
-Today's research signals a massive shift toward **surgical, zero-training infrastructure adaptation**. Whether it's editing weights directly with LLMs (TowerBridge), having agents write their own execution tools on the fly (ToolSmith), or surgically compressing massive VLA models without retraining (Pruning VLAs), the era of brute-force training pipelines and static architectures is giving way to **dynamic, self-optimizing runtime systems**. For software builders, the takeaway is clear: stop relying solely on static configurations and heavy fine-tuning jobs—design your systems to manipulate, extend, and compress themselves programmatically.
+The common thread binding these three papers is a decisive industry shift away from **costly runtime inference loops and brute-force trial-and-error** (like LLM summarizers, heavy embedding searches, retry-heavy agent loops, and rejection sampling). Instead, AI architecture is moving toward **deterministic structural engineering**: zero-inference lexical chunking for memory, decoupled post-action distillation for reasoning, and live logits-level masking for generation constraints. For builders, the message is clear: make your infrastructure deterministic, structural, and lightweight, letting the model focus purely on core value generation rather than computational housekeeping.
