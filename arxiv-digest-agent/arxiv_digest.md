@@ -1,85 +1,100 @@
-# 🧠 Daily AI Research Digest (2026-11-25)
+# 🧠 Daily AI Research Digest (2026-11-26)
 
 ---
 
-### [SAG-Mem-1.0 Technical Report](https://arxiv.org/abs/2611.33124v1)
-* **Authors:** SAG-Mem Research Team
-* **The 30-Second Summary:** Traditional conversational memory relies on expensive LLM summarization loops and heavy vector-embedding pipelines that introduce high latency and drop verbatim details. SAG-Mem solves this by utilizing a zero-inference write-time architecture paired with a multi-round BM25 lexical expansion and lightweight evidence evaluation at query time.
+### [1. Diverse Alternative Reasoning Traces for Hard Math Problems (DART)](https://arxiv.org/abs/2611.34928v1)
+* **Authors:** Lukas Aichberger, Adam Golinski, Arno Blaas, Arwen Bradley
+* **The 30-Second Summary:** When post-training open-weight models for complex math and coding, standard Monte Carlo sampling fails on hard problems and discards entire failed reasoning traces. DART solves this by breaking down rejected traces, identifying flawed steps via uncertainty, and prompting the model to branch out and fix only those specific steps using reference guidance.
 * **The Breakthrough Explained:** 
-  Instead of using an LLM to extract or summarize text, SAG-Mem stores complete dialogue messages in clean, non-overlapping chunks with *zero model inference required during write-time*. At query time, it uses smart multi-round lexical expansion via BM25 paired with a lightweight evidence evaluator. It proves you don't need heavy semantic embedding extraction for long-term memory—just clean chunking and intelligent lexical routing, which drastically drops storage and indexing costs while outperforming complex memory architectures on benchmarks like LoCoMo and LongMemEval.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  Replace your heavy vector-embedding generation pipeline and background LLM summarization workers with a hybrid BM25 + chunked raw-text store. 
+  Instead of throwing away incorrect reasoning paths, DART acts as an intelligent surgical editor. By identifying the exact point where a model's logic breaks down, it forks generation exclusively from that step rather than restarting from scratch. This targeted exploration recovers 37% more valid problem-solving paths than standard MC sampling at an identical generation cost, reducing the compute overhead per accepted training sample by 30% and yielding top-tier performance on benchmarks like MATH-500 and AIME.
+* **🛠️ How You Can Apply This (Developer Takeaway):**
+  Implement a **Step-Wise Tree-of-Thought Data Miner** in your post-training pipeline. Instead of binary reward modeling (correct/incorrect), score reasoning traces per token/step using uncertainty metrics (e.g., entropy of the token distribution). 
+  
   ```python
-  from rank_bm25 import BM25Okapi
-
-  class ZeroInferenceMemory:
-      def __init__(self):
-          self.chunks = []
-          self.tokenized_corpus = []
-
-      def add_turn(self, speaker: str, message: str):
-          # Zero-inference write: store raw text chunk and tokenize for BM25
-          chunk = f"{speaker}: {message}"
-          self.chunks.append(chunk)
-          self.tokenized_corpus.append(chunk.lower().split())
-
-      def query_memory(self, query: str, top_k: int = 3) -> list[str]:
-          # Query-time lexical routing via BM25
-          bm25 = BM25Okapi(self.tokenized_corpus)
-          tokenized_query = query.lower().split()
-          scores = bm25.get_scores(tokenized_query)
-          
-          # Return top scoring raw chunks instantly without embedding lookups
-          top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
-          return [self.chunks[i] for i in top_indices]
+  def dart_step_repair(failed_trace, step_index, reference_answer):
+      """
+      Concept for DART-style selective reasoning repair.
+      Isolates a failed step in a reasoning trace and forces a localized branch.
+      """
+      prefix_steps = failed_trace.steps[:step_index]
+      flawed_step = failed_trace.steps[step_index]
+      
+      prompt = f"""
+      Original Context: {' '.join(prefix_steps)}
+      Flawed Step: {flawed_step}
+      Correction Hint: The ultimate correct answer is {reference_answer}. 
+      Task: Branch out from the flawed step and provide an alternative, corrected logical step.
+      """
+      
+      repaired_step = local_llm.generate(prompt, temperature=0.7, max_tokens=256)
+      return prefix_steps + [repaired_step] + continue_trace(prefix_steps, repaired_step)
   ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.33124v1.pdf](https://arxiv.org/pdf/2611.33124v1.pdf)
+* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.34928v1.pdf)
 
 ---
 
-### [CoT-Proxy: Cross-Format Transfer for Distilling Long-Horizon Policies](https://arxiv.org/abs/2611.33148v1)
-* **Authors:** CoT-Proxy Research Contributors
-* **The 30-Second Summary:** Distilling expensive frontier reasoning models (which output hidden chains-of-thought) into fast local models is difficult because teachers hide internal traces and lengthy reasoning introduces massive latency. CoT-Proxy bypasses this by training student models purely on final actions using lightweight "CoT-proxies" and a KL divergence penalty, allowing local models to activate their own native thinking style at inference time.
+### [2. Mixture-of-Loops Transformer (MoLT)](https://arxiv.org/abs/2611.34923v1)
+* **Authors:** Lianghui Zhu, Shijie Wang, Xinggang Wang, Jinze Bai
+* **The 30-Second Summary:** Looped transformer architectures dramatically boost model reasoning and expressivity by reusing layers, but traditionally destroy inference throughput and training efficiency due to heavy cross-loop dependencies. MoLT fixes this by treating Keys and Values as persistent memory for selective reuse across depths, paired with a U-shaped layout (U-MoLT) that dynamically skips unneeded decoder traversals.
 * **The Breakthrough Explained:** 
-  CoT-Proxy demonstrates a counterintuitive breakthrough: **you can completely drop the hidden chain-of-thought during fine-tuning.** By training a smaller student model purely on the teacher's final actions (combined with a KL divergence penalty to prevent drift) and using short post-action reasoning summaries ("CoT-proxies"), the student learns to behave like the frontier teacher. Crucially, at inference time, the student can *enable its own thinking style* and achieve massive accuracy boosts (e.g., jumping from 7% to 48% on AppWorld using GPT-derived trajectories), giving teams a direct recipe to distill closed models into fast local actors.
-* **🛠️ How You Can Apply This (Developer Takeaway):** 
-  When building a dataset to distill a proprietary reasoning model (like OpenAI o1/o3 or DeepSeek-R1) into an open-weights model (like Qwen-7B), strip out the verbose hidden thought tokens. Train only on the final tool calls/actions, accompanied by a compressed 1-sentence post-action justification schema:
-  ```json
-  {
-    "context": "User requested database migration script.",
-    "action_proxy": "Used python script to parse schema because direct SQL dump failed.",
-    "final_action": "EXECUTE python parse_schema.py"
-  }
-  ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.33148v1.pdf](https://arxiv.org/pdf/2611.33148v1.pdf)
-
----
-
-### [BriConstrain: Geometrically Constrained Decoding for Autoregressive Brick Assembly Generation](https://arxiv.org/abs/2611.33135v1)
-* **Authors:** BriConstrain Lab
-* **The 30-Second Summary:** Autoregressive models generating structured, physical, or multi-step configurations often hallucinate invalid states, forcing engineers to rely on wasteful "rejection sampling" loops. BriConstrain introduces geometrically constrained decoding, which intercepts next-token probabilities live at inference time to mask out invalid options using a structural oracle.
-* **The Breakthrough Explained:** 
-  Instead of letting a model generate blindly and discarding bad outputs, BriConstrain intercepts the model's next-token probabilities *live at inference time* and dynamically masks out invalid options using a structural/geometric oracle. It guarantees 100% validity on-the-fly without needing expensive, retry-heavy agentic loops, completely eliminating invalid generation states in spatial and structural assembly tasks.
-* **🛠️ How YouCan Apply This (Developer Takeaway):** 
-  Implement a custom Logits Processor in your generation loop (e.g., using Hugging Face Transformers) to prune syntax, structural, or business logic violations token-by-token:
+  MoLT decouples memory construction from prediction readout. By organizing the looped network into a U-shaped architecture, the model can selectively route or bypass decoder layers dynamically based on input complexity. This eliminates the latency penalties historically associated with recurrent/looped transformers while retaining the profound expressivity benefits of a much deeper network. A 700M U-MoLT achieves 1.7x token efficiency over baselines while matching standard, non-looped inference latency.
+* **🛠️ How You Can Apply This (Developer Takeaway):**
+  When designing custom architectures or writing domain-specific transformer blocks in PyTorch, implement a dynamic gating mechanism that allows selective KV-cache feedback loops rather than strict sequential recycling.
+  
   ```python
   import torch
-  from transformers import LogitsProcessor
+  import torch.nn as nn
 
-  class StructuralConstraintLogitsProcessor(LogitsProcessor):
-      def __init__(self, invalid_token_ids_fn):
-          self.invalid_token_ids_fn = invalid_token_ids_fn
+  class SelectiveKVLoopBlock(nn.Module):
+      def __init__(self, hidden_dim):
+          super().__init__()
+          self.layer = nn.TransformerDecoderLayer(d_model=hidden_dim, nhead=8)
+          self.gate = nn.Linear(hidden_dim, 1) # Decides whether to loop back
 
-      def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
-          # Compute invalid tokens dynamically based on current generation state (the structural oracle)
-          invalid_ids = self.invalid_token_ids_fn(input_ids)
-          for token_id in invalid_ids:
-              scores[:, token_id] = -float('inf')  # Mask out invalid choices entirely
-          return scores
+      def forward(self, x, memory_bank):
+          # x: current tokens, memory_bank: persistent KV states from previous loops
+          gate_score = torch.sigmoid(self.gate(x.mean(dim=1)))
+          
+          if gate_score > 0.5:
+              # Reuse historical memory bank selectively
+              out = self.layer(x, memory_bank)
+          else:
+              out = self.layer(x, x) # Standard self-attention pass
+              
+          return out, x # Update memory bank
   ```
-* **PDF Link:** [https://arxiv.org/pdf/2611.33135v1.pdf](https://arxiv.org/pdf/2611.33135v1.pdf)
+* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.34923v1.pdf)
+
+---
+
+### [3. Cairn: Object-Centric 3D Trajectory Priors for Steering Frozen VLAs](https://arxiv.org/abs/2611.34914v1)
+* **Authors:** Agelos Kratimenos, Kostas Daniilidis, Evangelos Chatzipantazis
+* **The 30-Second Summary:** Vision-Language-Action (VLA) robot models are brittle in dynamic environments because fine-tuning them causes catastrophic forgetting. Cairn introduces a lightweight, simulation-trained 3D trajectory steering layer that sits on top of a *completely frozen* VLA, ingesting live point clouds to generate obstacle-avoiding SE(3) waypoints that bias the VLA's actions in real-time.
+* **The Breakthrough Explained:** 
+  Instead of modifying millions of foundation model weights, Cairn acts as an external safety and steering pilot. It reads environmental point clouds, plans collision-free trajectories for target objects, and softly injects directional biases into the VLA's action space at test-time. This decoupled architecture skyrockets a frozen $\pi_0.5$ robot policy's success rate from 24.5% to 95.1% on cluttered, displaced-object benchmarks without a single gradient update.
+* **🛠️ How You Can Apply This (Developer Takeaway):**
+  Use the **Inference-Time Guidance / Residual Steering Pattern** whenever you deploy large, un-fine-tunable foundation models (LLMs, VLAs, or diffusion policies) in dynamic production environments. Keep the base model frozen and implement a lightweight geometric/symbolic heuristic layer that computes a residual vector to nudge the base model's continuous action space or token logits away from failure modes.
+  
+  ```python
+  class SteeringLayerVLA:
+      def __init__(self, frozen_vla_model):
+          self.vla = frozen_vla_model
+          self.spatial_prior = Lightweight3DPlanner() # Sim-trained point-cloud processor
+
+      def get_steered_action(self, observation_image, point_cloud, instruction):
+          # 1. Get baseline action from expensive, frozen foundation model
+          base_action = self.vla.predict(observation_image, instruction)
+          
+          # 2. Calculate safety/trajectory correction via lightweight spatial prior
+          safety_waypoint_vector = self.spatial_prior.compute_waypoint(point_cloud)
+          
+          # 3. Residual steering combination (Alpha blending or projection)
+          final_action = base_action + (0.4 * safety_waypoint_vector)
+          return final_action
+  ```
+* **PDF Link:** [Direct PDF Link](https://arxiv.org/pdf/2611.34914v1.pdf)
 
 ---
 
 ### 💡 Builder Trend of the Day
-The common thread binding these three papers is a decisive industry shift away from **costly runtime inference loops and brute-force trial-and-error** (like LLM summarizers, heavy embedding searches, retry-heavy agent loops, and rejection sampling). Instead, AI architecture is moving toward **deterministic structural engineering**: zero-inference lexical chunking for memory, decoupled post-action distillation for reasoning, and live logits-level masking for generation constraints. For builders, the message is clear: make your infrastructure deterministic, structural, and lightweight, letting the model focus purely on core value generation rather than computational housekeeping.
+Today’s papers reveal a decisive industry shift away from **brute-force scaling and expensive end-to-end fine-tuning**, moving instead toward **modular, surgical intervention**. Whether it is repairing specific nodes in reasoning traces (DART), selectively routing memory loops in transformers (MoLT), or applying lightweight geometric steering layers to frozen robotics models (Cairn), the engineering paradigm of 2026 is clear: *Do not retrain the entire monolith; build intelligent, specialized routing and correction layers around frozen foundation assets to maximize both compute efficiency and safety.*
